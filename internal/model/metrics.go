@@ -5,6 +5,8 @@ const (
 	Gauge   = "gauge"
 )
 
+var Storage = NewMemStorage()
+
 // NOTE: Не усложняем пример, вводя иерархическую вложенность структур.
 // Органичиваясь плоской моделью.
 // Delta и Value объявлены через указатели,
@@ -16,4 +18,40 @@ type Metrics struct {
 	Delta *int64   `json:"delta,omitempty"`
 	Value *float64 `json:"value,omitempty"`
 	Hash  string   `json:"hash,omitempty"`
+}
+
+type MemStorage struct {
+	Store map[string]Metrics
+}
+
+func NewMemStorage() *MemStorage {
+	return &MemStorage{
+		Store: make(map[string]Metrics),
+	}
+}
+
+func (m *MemStorage) SaveFloatMetric(metricName, metricType string, metricValue float64) {
+	m.Store[metricType+"_"+metricName] = Metrics{
+		ID:    metricType + "_" + metricName,
+		MType: Gauge,
+		Value: &metricValue,
+		Hash:  "",
+	}
+}
+
+func (m *MemStorage) SaveIntMetric(metricName, metricType string, metricValue int64) {
+	m.Store[metricType+"_"+metricName] = Metrics{
+		ID:    metricType + "_" + metricName,
+		MType: Counter,
+		Delta: &metricValue,
+		Hash:  "",
+	}
+}
+
+func (m *MemStorage) GetMetric(metricName, metricType string) Metrics {
+	return m.Store[metricType+"_"+metricName]
+}
+
+func (m *MemStorage) DeleteMetric(metricName, metricType string) {
+	delete(m.Store, metricType+"_"+metricName)
 }
