@@ -32,7 +32,7 @@ func NewMemStorage() *MemStorage {
 
 func (m *MemStorage) SaveFloatMetric(metricName, metricType string, metricValue float64) {
 	m.Store[metricType+"_"+metricName] = Metrics{
-		ID:    metricType + "_" + metricName,
+		ID:    metricName,
 		MType: Gauge,
 		Value: &metricValue,
 		Hash:  "",
@@ -41,7 +41,7 @@ func (m *MemStorage) SaveFloatMetric(metricName, metricType string, metricValue 
 
 func (m *MemStorage) SaveIntMetric(metricName, metricType string, metricValue int64) {
 	m.Store[metricType+"_"+metricName] = Metrics{
-		ID:    metricType + "_" + metricName,
+		ID:    metricName,
 		MType: Counter,
 		Delta: &metricValue,
 		Hash:  "",
