@@ -19,19 +19,19 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
-	splitUrl := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
-	if len(splitUrl) != 4 {
+	splitURL := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+	if len(splitURL) != 4 {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-	metricType := splitUrl[1]
+	metricType := splitURL[1]
 	if !slices.Contains([]string{models.Counter, models.Gauge}, metricType) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	metricName := splitUrl[2]
-	metricValue := splitUrl[3]
+	metricName := splitURL[2]
+	metricValue := splitURL[3]
 	if value, err = checkMetricsType(metricType, metricValue); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
