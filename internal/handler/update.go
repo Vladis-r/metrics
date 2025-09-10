@@ -19,28 +19,28 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
-	split_url := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
-	if len(split_url) != 4 {
+	splitUrl := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+	if len(splitUrl) != 4 {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-	metric_type := split_url[1]
-	if !slices.Contains([]string{models.Counter, models.Gauge}, metric_type) {
+	metricType := splitUrl[1]
+	if !slices.Contains([]string{models.Counter, models.Gauge}, metricType) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	metric_name := split_url[2]
-	metric_value := split_url[3]
-	if value, err = checkMetricsType(metric_type, metric_value); err != nil {
+	metricName := splitUrl[2]
+	metricValue := splitUrl[3]
+	if value, err = checkMetricsType(metricType, metricValue); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	switch v := value.(type) {
 	case float64:
-		models.Storage.SaveFloatMetric(metric_name, metric_type, v)
+		models.Storage.SaveFloatMetric(metricName, metricType, v)
 	case int64:
-		models.Storage.SaveIntMetric(metric_name, metric_type, v)
+		models.Storage.SaveIntMetric(metricName, metricType, v)
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		return
