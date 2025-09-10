@@ -58,7 +58,7 @@ var MetricsMap = map[string]string{
 
 var mu sync.Mutex
 
-// GoReportMetics - func
+// GoReportMetics - func for send metrics to server.
 func GoReportMetics(wg *sync.WaitGroup) {
 	defer wg.Done()
 	ticker := time.NewTicker(ReportInterval)
@@ -74,6 +74,7 @@ func GoReportMetics(wg *sync.WaitGroup) {
 	}
 }
 
+// GoUpdateMetrics - func for update metrics.
 func GoUpdateMetrics(wg *sync.WaitGroup) {
 	defer wg.Done()
 	ticker := time.NewTicker(PollInterval)
@@ -102,6 +103,7 @@ func updateMetrics() {
 	}
 }
 
+// sendMetrics - create url and send metrics to server.
 func sendMetrics(metricsMap map[string]string) {
 	for key, metricValue := range metricsMap {
 		splittedString := strings.Split(key, "-")
@@ -112,6 +114,7 @@ func sendMetrics(metricsMap map[string]string) {
 			e := fmt.Errorf("error send metrics: %w", err)
 			fmt.Println(e)
 		}
+		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
 			fmt.Println(resp.StatusCode)
 			fmt.Println(fullURL)
@@ -119,12 +122,14 @@ func sendMetrics(metricsMap map[string]string) {
 	}
 }
 
+// getRandomValueMetric - return random value in string.
 func getRandomValueMetric() string {
 	randInt, _ := rand.Prime(rand.Reader, 64)
 	randFloat, _ := randInt.Float64()
 	return fmt.Sprintf("%f", randFloat)
 }
 
+// getPollCountertMetric - count update metrics.
 func getPollCountertMetric(counter string) string {
 	v, err := strconv.Atoi(counter)
 	if err != nil {
@@ -133,6 +138,7 @@ func getPollCountertMetric(counter string) string {
 	return fmt.Sprintf("%d", v+1)
 }
 
+// getRunTimeMetrics - find metric by name and return in string.
 func getRunTimeMetrics(key string, memStats runtime.MemStats) string {
 	name := strings.Split(key, "-")[0]
 	value := fmt.Sprintf("%v", reflect.ValueOf(memStats).FieldByName(name))
