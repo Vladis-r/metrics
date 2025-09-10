@@ -106,15 +106,15 @@ func sendMetrics(metricsMap map[string]string) {
 	for key, metricValue := range metricsMap {
 		splittedString := strings.Split(key, "-")
 		metricName, metricType := splittedString[0], splittedString[1]
-		fullUrl := fmt.Sprintf("%s%s%s/%s/%s/%s", server, port, routeUpdateMetrics, metricType, metricName, metricValue)
-		resp, err := http.Post(fullUrl, "text/plain", nil)
+		fullURL := fmt.Sprintf("%s%s%s/%s/%s/%s", server, port, routeUpdateMetrics, metricType, metricName, metricValue)
+		resp, err := http.Post(fullURL, "text/plain", nil)
 		if err != nil {
 			e := fmt.Errorf("error send metrics: %w", err)
 			fmt.Println(e)
 		}
 		if resp.StatusCode != http.StatusOK {
 			fmt.Println(resp.StatusCode)
-			fmt.Println(fullUrl)
+			fmt.Println(fullURL)
 		}
 	}
 }
