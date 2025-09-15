@@ -8,45 +8,44 @@ import (
 	"strings"
 
 	models "github.com/Vladis-r/metrics.git/internal/model"
+	"github.com/gin-gonic/gin"
 )
 
-func UpdateHandler(w http.ResponseWriter, r *http.Request) {
+func Update(c *gin.Context) {
 	var (
 		value interface{}
 		err   error
 	)
 
-	if r.Method != "POST" {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-	}
-	splitURL := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
-	if len(splitURL) != 4 {
-		w.WriteHeader(http.StatusNotFound)
+	if c.Request.Method != http.MethodPost {
+		c.AbortWithStatus(http.StatusMethodNotAllowed)
 		return
 	}
-	metricType := splitURL[1]
+	metricType := strings.ToLower(c.Param("metricType"))
+	metricName := strings.ToLower(c.Param("metricName"))
+	metricValue := strings.ToLower(c.Param("metricValue"))
+	// check possible metricTypes from constants.
 	if !slices.Contains([]string{models.Counter, models.Gauge}, metricType) {
-		w.WriteHeader(http.StatusBadRequest)
+		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-
-	metricName := splitURL[2]
-	metricValue := splitURL[3]
+	// check metricValues.
 	if value, err = checkMetricsType(metricType, metricValue); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
+	// save metric by type.
 	switch v := value.(type) {
 	case float64:
 		models.Storage.SaveFloatMetric(metricName, metricType, v)
 	case int64:
 		models.Storage.SaveIntMetric(metricName, metricType, v)
 	default:
-		w.WriteHeader(http.StatusBadRequest)
+		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	c.Status(http.StatusOK)
 }
 
 // checkMetricsType - get the metric depending on the type of int64 or float64.

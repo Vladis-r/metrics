@@ -1,20 +1,26 @@
 package main
 
 import (
-	"net/http"
+	"fmt"
+
+	"github.com/gin-gonic/gin"
 
 	"github.com/Vladis-r/metrics.git/internal/handler"
+	models "github.com/Vladis-r/metrics.git/internal/model"
 )
 
 func main() {
-	// Create custom mux
-	mux := http.NewServeMux()
+	r := gin.Default()                 // Create a new Gin instance
+	r.LoadHTMLGlob("templates/*.html") // Load HTML templates
+	r.Static("/static", "./static")    // Serve static files from the "static" directory
 
-	// Register handlers
-	mux.HandleFunc("/", handler.MainHandler)
-	mux.HandleFunc("/update/", handler.UpdateHandler)
+	// Storage := models.NewMemStorage()
+	fmt.Println("Storage: ", models.Storage)
 
-	if err := http.ListenAndServe(":8080", mux); err != nil {
-		panic(err)
-	}
+	// handlers
+	r.GET("/", handler.Main)
+	r.GET("/value/:metricType/:metricName", handler.Value)
+	r.POST("/update/:metricType/:metricName/:metricValue", handler.Update)
+
+	r.Run() // Start server localhost:8080 by default
 }
