@@ -17,10 +17,6 @@ func Update(c *gin.Context) {
 		err   error
 	)
 
-	if c.Request.Method != http.MethodPost {
-		c.AbortWithStatus(http.StatusMethodNotAllowed)
-		return
-	}
 	metricType := strings.ToLower(c.Param("metricType"))
 	metricName := strings.ToLower(c.Param("metricName"))
 	metricValue := strings.ToLower(c.Param("metricValue"))

@@ -2,10 +2,13 @@ package handler
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"testing"
+
+	"github.com/gin-gonic/gin"
 )
 
-func TestUpdateHandler(t *testing.T) {
+func TestUpdate(t *testing.T) {
 	tests := []struct {
 		name   string
 		method string
@@ -15,8 +18,8 @@ func TestUpdateHandler(t *testing.T) {
 		{
 			name:   "Test 1. Check wrong method",
 			method: "GET",
-			url:    "/update/",
-			want:   http.StatusMethodNotAllowed,
+			url:    "/update/wrongType/testMetric/101",
+			want:   http.StatusNotFound,
 		},
 		{
 			name:   "Test 2. Check wrong url",
@@ -37,16 +40,21 @@ func TestUpdateHandler(t *testing.T) {
 			want:   http.StatusOK,
 		},
 	}
+
+	gin.SetMode(gin.TestMode)
+	r := gin.Default()
+	r.LoadHTMLGlob("../../templates/*.html")
+
+	r.POST("/update/:metricType/:metricName/:metricValue", Update)
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rr, req, err := getRequest(tt.method, tt.url, nil)
-			if err != nil {
-				t.Errorf("Error : %v", err)
-			}
-			UpdateHandler(rr, req)
+			req, _ := http.NewRequest(tt.method, tt.url, nil)
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
 
-			if rr.Code != tt.want {
-				t.Errorf("Wrong status: got: %v, want: %v", rr.Code, tt.want)
+			if w.Code != tt.want {
+				t.Errorf("Wrong status: got: %v, want: %v", w.Code, tt.want)
 			}
 		})
 	}

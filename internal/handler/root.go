@@ -14,7 +14,7 @@ type metricsResult struct {
 	Value interface{}
 }
 
-func Main(c *gin.Context) {
+func Root(c *gin.Context) {
 	// getExampleMetrics()
 	r := prepareMetrics()
 

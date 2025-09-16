@@ -18,7 +18,7 @@ func main() {
 	fmt.Println("Storage: ", models.Storage)
 
 	// handlers
-	r.GET("/", handler.Main)
+	r.GET("/", handler.Root)
 	r.GET("/value/:metricType/:metricName", handler.Value)
 	r.POST("/update/:metricType/:metricName/:metricValue", handler.Update)
 
