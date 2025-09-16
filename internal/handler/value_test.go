@@ -43,8 +43,8 @@ func TestValue(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.save {
 				m := models.Storage
-				splitUrl := strings.Split(tt.url, "/")
-				m.SaveFloatMetric(strings.ToLower(splitUrl[3]), strings.ToLower(splitUrl[2]), 99)
+				splitURL := strings.Split(tt.url, "/")
+				m.SaveFloatMetric(strings.ToLower(splitURL[3]), strings.ToLower(splitURL[2]), 99)
 			}
 
 			req, _ := http.NewRequest(tt.method, tt.url, nil)
