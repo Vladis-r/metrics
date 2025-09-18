@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -10,6 +11,8 @@ import (
 
 // Value - get metric by type and name.
 func Value(c *gin.Context) {
+	var val interface{}
+
 	metricType := strings.ToLower(c.Param("metricType"))
 	metricName := strings.ToLower(c.Param("metricName"))
 	metric, ok := models.Storage.GetMetric(metricName, metricType)
@@ -19,6 +22,11 @@ func Value(c *gin.Context) {
 		})
 		return
 	}
+	if metric.Value != nil {
+		val = metric.Value
+	} else {
+		val = metric.Delta
+	}
 
-	c.JSON(http.StatusOK, metric)
+	c.String(http.StatusOK, fmt.Sprintf("%v", val))
 }
