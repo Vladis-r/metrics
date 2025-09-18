@@ -13,11 +13,13 @@ var Storage = NewMemStorage()
 // что бы отличать значение "0", от не заданного значения
 // и соответственно не кодировать в структуру.
 type Metrics struct {
-	ID    string   `json:"id"`
-	MType string   `json:"type"`
-	Delta *int64   `json:"delta,omitempty"`
-	Value *float64 `json:"value,omitempty"`
-	Hash  string   `json:"hash,omitempty"`
+	ID       string   `json:"id"`
+	MType    string   `json:"type"`
+	Delta    *int64   `json:"delta,omitempty"`
+	Value    *float64 `json:"value,omitempty"`
+	Hash     string   `json:"hash,omitempty"`
+	ValueSum float64
+	DeltaSum int64
 }
 
 type MemStorage struct {
@@ -31,18 +33,28 @@ func NewMemStorage() *MemStorage {
 }
 
 func (m *MemStorage) SaveFloatMetric(metricName, metricType string, metricValue float64) {
-	m.Store[metricType+"_"+metricName] = Metrics{
-		ID:    metricName,
-		MType: Gauge,
-		Value: &metricValue,
+	if metric, ok := m.Store[metricType+"_"+metricName]; ok {
+		metric.Value = &metricValue
+		metric.ValueSum += metricValue
+	} else {
+		m.Store[metricType+"_"+metricName] = Metrics{
+			ID:    metricName,
+			MType: Gauge,
+			Value: &metricValue,
+		}
 	}
 }
 
 func (m *MemStorage) SaveIntMetric(metricName, metricType string, metricValue int64) {
-	m.Store[metricType+"_"+metricName] = Metrics{
-		ID:    metricName,
-		MType: Counter,
-		Delta: &metricValue,
+	if metric, ok := m.Store[metricType+"_"+metricName]; ok {
+		metric.Delta = &metricValue
+		metric.DeltaSum += metricValue
+	} else {
+		m.Store[metricType+"_"+metricName] = Metrics{
+			ID:    metricName,
+			MType: Counter,
+			Delta: &metricValue,
+		}
 	}
 }
 
