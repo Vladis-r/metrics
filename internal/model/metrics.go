@@ -34,8 +34,13 @@ func NewMemStorage() *MemStorage {
 
 func (m *MemStorage) SaveFloatMetric(metricName, metricType string, metricValue float64) {
 	if metric, ok := m.Store[metricType+"_"+metricName]; ok {
-		metric.Value = &metricValue
-		metric.ValueSum += metricValue
+		valueSum := metric.ValueSum + metricValue
+		m.Store[metricType+"_"+metricName] = Metrics{
+			ID:       metricName,
+			MType:    Gauge,
+			Value:    &metricValue,
+			ValueSum: valueSum,
+		}
 	} else {
 		m.Store[metricType+"_"+metricName] = Metrics{
 			ID:    metricName,
@@ -47,8 +52,13 @@ func (m *MemStorage) SaveFloatMetric(metricName, metricType string, metricValue 
 
 func (m *MemStorage) SaveIntMetric(metricName, metricType string, metricValue int64) {
 	if metric, ok := m.Store[metricType+"_"+metricName]; ok {
-		metric.Delta = &metricValue
-		metric.DeltaSum += metricValue
+		deltaSum := metric.DeltaSum + metricValue
+		m.Store[metricType+"_"+metricName] = Metrics{
+			ID:       metricName,
+			MType:    Counter,
+			Delta:    &metricValue,
+			DeltaSum: deltaSum,
+		}
 	} else {
 		m.Store[metricType+"_"+metricName] = Metrics{
 			ID:    metricName,
