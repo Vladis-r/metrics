@@ -23,9 +23,9 @@ func Value(c *gin.Context) {
 		return
 	}
 	if metric.Value != nil {
-		val = metric.Value
+		val = *metric.Value
 	} else {
-		val = metric.Delta
+		val = *metric.Delta
 	}
 
 	c.String(http.StatusOK, fmt.Sprintf("%v", val))
