@@ -43,9 +43,10 @@ func (m *MemStorage) SaveFloatMetric(metricName, metricType string, metricValue 
 		}
 	} else {
 		m.Store[metricType+"_"+metricName] = Metrics{
-			ID:    metricName,
-			MType: Gauge,
-			Value: &metricValue,
+			ID:       metricName,
+			MType:    Gauge,
+			Value:    &metricValue,
+			ValueSum: metricValue,
 		}
 	}
 }
@@ -61,9 +62,10 @@ func (m *MemStorage) SaveIntMetric(metricName, metricType string, metricValue in
 		}
 	} else {
 		m.Store[metricType+"_"+metricName] = Metrics{
-			ID:    metricName,
-			MType: Counter,
-			Delta: &metricValue,
+			ID:       metricName,
+			MType:    Counter,
+			Delta:    &metricValue,
+			DeltaSum: metricValue,
 		}
 	}
 }

@@ -23,7 +23,7 @@ func Value(c *gin.Context) {
 		return
 	}
 	if metric.Value != nil {
-		val = metric.ValueSum
+		val = metric.Value
 	} else {
 		val = metric.DeltaSum
 	}
