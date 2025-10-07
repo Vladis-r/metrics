@@ -27,4 +27,4 @@ vendor/
 # Custom
 example.json
 makefile
-test_local
+test_local/

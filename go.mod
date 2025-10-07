@@ -2,7 +2,9 @@ module github.com/Vladis-r/metrics.git
 
 go 1.24.5
 
-require github.com/gin-gonic/gin v1.10.1
+require (
+	github.com/gin-gonic/gin v1.10.1
+)
 
 require (
 	github.com/bytedance/gopkg v0.1.3 // indirect

@@ -11,13 +11,11 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/Vladis-r/metrics.git/cmd/agent/flags"
 )
 
 const (
-	PollInterval       = 2 * time.Second  // time for update metrics
-	ReportInterval     = 10 * time.Second // time for report metrics to server
-	port               = ":8080"
-	server             = "http://localhost"
 	routeUpdateMetrics = "/update"
 )
 
@@ -61,7 +59,7 @@ var mu sync.Mutex
 // GoReportMetics - func for send metrics to server.
 func GoReportMetics(wg *sync.WaitGroup) {
 	defer wg.Done()
-	ticker := time.NewTicker(ReportInterval)
+	ticker := time.NewTicker(flags.ReportInterval)
 	defer ticker.Stop()
 
 	for t := range ticker.C {
@@ -77,7 +75,7 @@ func GoReportMetics(wg *sync.WaitGroup) {
 // GoUpdateMetrics - func for update metrics.
 func GoUpdateMetrics(wg *sync.WaitGroup) {
 	defer wg.Done()
-	ticker := time.NewTicker(PollInterval)
+	ticker := time.NewTicker(flags.PollInterval)
 	defer ticker.Stop()
 
 	for t := range ticker.C {
@@ -93,10 +91,12 @@ func updateMetrics() {
 	runtime.ReadMemStats(&memStats)
 	for key := range MetricsMap {
 		switch key {
+		// custom keys
 		case "PollCount-counter":
 			MetricsMap[key] = getPollCountertMetric(MetricsMap[key])
 		case "RandomValue-gauge":
 			MetricsMap[key] = getRandomValueMetric()
+		// runtime keys
 		default:
 			MetricsMap[key] = getRunTimeMetrics(key, memStats)
 		}
@@ -108,7 +108,7 @@ func sendMetrics(metricsMap map[string]string) {
 	for key, metricValue := range metricsMap {
 		splittedString := strings.Split(key, "-")
 		metricName, metricType := splittedString[0], splittedString[1]
-		fullURL := fmt.Sprintf("%s%s%s/%s/%s/%s", server, port, routeUpdateMetrics, metricType, metricName, metricValue)
+		fullURL := fmt.Sprintf("http://%s%s/%s/%s/%s", flags.Addr, routeUpdateMetrics, metricType, metricName, metricValue)
 		resp, err := http.Post(fullURL, "text/plain", nil)
 		if err != nil {
 			e := fmt.Errorf("error send metrics: %w", err)
