@@ -59,7 +59,7 @@ var mu sync.Mutex
 // GoReportMetics - func for send metrics to server.
 func GoReportMetics(wg *sync.WaitGroup) {
 	defer wg.Done()
-	ticker := time.NewTicker(flags.ReportInterval)
+	ticker := time.NewTicker(time.Duration(flags.ReportInterval) * time.Second)
 	defer ticker.Stop()
 
 	for t := range ticker.C {
@@ -75,7 +75,7 @@ func GoReportMetics(wg *sync.WaitGroup) {
 // GoUpdateMetrics - func for update metrics.
 func GoUpdateMetrics(wg *sync.WaitGroup) {
 	defer wg.Done()
-	ticker := time.NewTicker(flags.PollInterval)
+	ticker := time.NewTicker(time.Duration(flags.PollInterval) * time.Second)
 	defer ticker.Stop()
 
 	for t := range ticker.C {
