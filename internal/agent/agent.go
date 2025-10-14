@@ -3,121 +3,83 @@ package agent
 import (
 	"crypto/rand"
 	"fmt"
-	"maps"
 	"net/http"
 	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
-	"github.com/Vladis-r/metrics.git/cmd/agent/flags"
+	"github.com/Vladis-r/metrics.git/cmd/config"
+	models "github.com/Vladis-r/metrics.git/internal/model"
 )
 
-const (
-	routeUpdateMetrics = "/update"
-)
-
-// MetricsRuntimeMap - map with runTime metrics. "name-type": "value"
-var MetricsMap = map[string]string{
-	// Runtime
-	"Alloc-counter":        "value",
-	"BuckHashSys-counter":  "value",
-	"Frees-counter":        "value",
-	"GCCPUFraction-gauge":  "value",
-	"GCSys-counter":        "value",
-	"HeapAlloc-counter":    "value",
-	"HeapIdle-counter":     "value",
-	"HeapInuse-counter":    "value",
-	"HeapObjects-counter":  "value",
-	"HeapReleased-counter": "value",
-	"HeapSys-counter":      "value",
-	"LastGC-counter":       "value",
-	"Lookups-counter":      "value",
-	"MCacheInuse-counter":  "value",
-	"MCacheSys-counter":    "value",
-	"MSpanInuse-counter":   "value",
-	"MSpanSys-counter":     "value",
-	"Mallocs-counter":      "value",
-	"NextGC-counter":       "value",
-	"NumForcedGC-counter":  "value",
-	"NumGC-counter":        "value",
-	"OtherSys-counter":     "value",
-	"PauseTotalNs-counter": "value",
-	"StackInuse-counter":   "value",
-	"StackSys-counter":     "value",
-	"Sys-counter":          "value",
-	"TotalAlloc-counter":   "value",
-	// Custom
-	"PollCount-counter": "value",
-	"RandomValue-gauge": "value",
-}
-
-var mu sync.Mutex
-
-// GoReportMetics - func for send metrics to server.
-func GoReportMetics(wg *sync.WaitGroup) {
-	defer wg.Done()
-	ticker := time.NewTicker(time.Duration(flags.ReportInterval) * time.Second)
+// GoReportMetrics - func for send metrics to server.
+func GoReportMetrics(m *models.MetricsMap, c *config.Config) {
+	defer m.Wg.Done()
+	ticker := time.NewTicker(time.Duration(c.ReportInterval) * time.Second)
 	defer ticker.Stop()
 
 	for t := range ticker.C {
-		mu.Lock()
-		newMap := make(map[string]string, len(MetricsMap))
-		maps.Copy(newMap, MetricsMap)
-		mu.Unlock()
-		go sendMetrics(newMap)
+		go sendMetrics(m, c)
 		fmt.Println("Send metrics. Tick at ", t)
 	}
 }
 
+// sendMetrics - create url and send metrics to server.
+func sendMetrics(m *models.MetricsMap, c *config.Config) (err error) {
+	client := m.Client
+	copyData := m.CopyData()
+	for key, metricValue := range copyData {
+		splittedString := strings.Split(key, "-")
+		metricName, metricType := splittedString[0], splittedString[1]
+		fullURL := fmt.Sprintf("http://%s%s/%s/%s/%s", c.Addr, "/update", metricType, metricName, metricValue)
+		req, err := http.NewRequest("POST", fullURL, nil)
+		if err != nil {
+			return fmt.Errorf("func: sendMetrics; error while NewRequest: %w", err)
+		}
+
+		resp, err := client.Do(req)
+		if err != nil {
+			return fmt.Errorf("func: sendMetrics; error while client.Do(req): %w", err)
+		}
+
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("func: sendMetrics; statusCode is not OK: %w", err)
+		}
+	}
+	return nil
+}
+
 // GoUpdateMetrics - func for update metrics.
-func GoUpdateMetrics(wg *sync.WaitGroup) {
-	defer wg.Done()
-	ticker := time.NewTicker(time.Duration(flags.PollInterval) * time.Second)
+func GoUpdateMetrics(m *models.MetricsMap, c *config.Config) {
+	defer m.Wg.Done()
+	ticker := time.NewTicker(time.Duration(c.PollInterval) * time.Second)
 	defer ticker.Stop()
 
 	for t := range ticker.C {
-		mu.Lock()
-		updateMetrics()
-		mu.Unlock()
+		m.Mu.Lock()
+		updateMetrics(m.Data)
+		m.Mu.Unlock()
 		fmt.Println("Update metrics. Tick at ", t)
 	}
 }
 
-func updateMetrics() {
+// updateMetrics - save metrics in data by key.
+func updateMetrics(data map[string]string) {
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
-	for key := range MetricsMap {
+	for key := range data {
 		switch key {
 		// custom keys
 		case "PollCount-counter":
-			MetricsMap[key] = getPollCountertMetric(MetricsMap[key])
+			data[key] = getPollCounterMetric(data[key])
 		case "RandomValue-gauge":
-			MetricsMap[key] = getRandomValueMetric()
+			data[key] = getRandomValueMetric()
 		// runtime keys
 		default:
-			MetricsMap[key] = getRunTimeMetrics(key, memStats)
-		}
-	}
-}
-
-// sendMetrics - create url and send metrics to server.
-func sendMetrics(metricsMap map[string]string) {
-	for key, metricValue := range metricsMap {
-		splittedString := strings.Split(key, "-")
-		metricName, metricType := splittedString[0], splittedString[1]
-		fullURL := fmt.Sprintf("http://%s%s/%s/%s/%s", flags.Addr, routeUpdateMetrics, metricType, metricName, metricValue)
-		resp, err := http.Post(fullURL, "text/plain", nil)
-		if err != nil {
-			e := fmt.Errorf("error send metrics: %w", err)
-			fmt.Println(e)
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode != http.StatusOK {
-			fmt.Println(resp.StatusCode)
-			fmt.Println(fullURL)
+			data[key] = getRunTimeMetrics(key, memStats)
 		}
 	}
 }
@@ -129,8 +91,8 @@ func getRandomValueMetric() string {
 	return fmt.Sprintf("%f", randFloat)
 }
 
-// getPollCountertMetric - count update metrics.
-func getPollCountertMetric(counter string) string {
+// getPollCounterMetric - count update metrics.
+func getPollCounterMetric(counter string) string {
 	v, err := strconv.Atoi(counter)
 	if err != nil {
 		v = -1

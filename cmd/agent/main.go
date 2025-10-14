@@ -1,34 +1,31 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	"sync"
 
-	"github.com/Vladis-r/metrics.git/cmd/agent/flags"
+	"github.com/Vladis-r/metrics.git/cmd/config"
 	"github.com/Vladis-r/metrics.git/internal/agent"
-)
-
-var (
-	wg sync.WaitGroup
+	models "github.com/Vladis-r/metrics.git/internal/model"
 )
 
 func main() {
-	flag.Parse() // Parse command-line arguments
+	c := config.GetConfig() // Parse command-line arguments
+	m := models.NewMetricsMap()
 
 	fmt.Println("Start metrics agent...")
+	fmt.Printf("With flags:\n -p %v\n -r %v\n\n", c.PollInterval, c.ReportInterval)
 
-	gorutines := []func(*sync.WaitGroup){
+	goroutines := []func(*models.MetricsMap, *config.Config){
 		agent.GoUpdateMetrics,
-		agent.GoReportMetics,
+		agent.GoReportMetrics,
 	}
 
-	for _, gorutine := range gorutines {
-		wg.Add(1)
-		go gorutine(&wg)
+	for _, goroutine := range goroutines {
+		m.Wg.Add(1)
+		go goroutine(m, c)
 	}
 
 	fmt.Println("Press Ctrl+C to exit")
-	fmt.Printf("Start with flags: -p %v, -r %v\n", flags.PollInterval, flags.ReportInterval)
-	wg.Wait()
+
+	m.Wg.Wait()
 }
