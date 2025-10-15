@@ -13,7 +13,7 @@ func main() {
 	m := models.NewMetricsMap() // Init client and map for metrics.
 
 	fmt.Println("Start metrics agent...")
-	fmt.Printf("With flags:\n -p %v\n -r %v\n\n", c.PollInterval, c.ReportInterval)
+	fmt.Printf("With config:\n PollInterval: %v\n ReportInterval: %v\n\n", c.PollInterval, c.ReportInterval)
 
 	goroutines := []func(*models.MetricsMap, *config.Config){
 		agent.GoUpdateMetrics,

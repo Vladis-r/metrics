@@ -21,7 +21,7 @@ func GetConfig() *Config {
 
 	flag.Parse()
 
-	if addr := os.Getenv("ADDR"); addr != "" {
+	if addr := os.Getenv("ADDRESS"); addr != "" {
 		c.Addr = addr
 	}
 	if reportStr := os.Getenv("REPORT_INTERVAL"); reportStr != "" {
