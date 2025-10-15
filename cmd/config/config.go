@@ -2,6 +2,8 @@ package config
 
 import (
 	"flag"
+	"os"
+	"strconv"
 )
 
 type Config struct {
@@ -18,5 +20,21 @@ func GetConfig() *Config {
 
 	flag.Parse()
 
+	switch {
+	case os.Getenv("ADDR") != "":
+		c.Addr = os.Getenv("ADDR")
+	case os.Getenv("REPORT_INTERVAL") != "":
+		if i, err := strconv.Atoi(os.Getenv("REPORT_INTERVAL")); err == nil {
+			if i > 0 {
+				c.ReportInterval = i
+			}
+		}
+	case os.Getenv("POLL_INTERVAL") != "":
+		if i, err := strconv.Atoi(os.Getenv("POLL_INTERVAL")); err == nil {
+			if i > 0 {
+				c.PollInterval = i
+			}
+		}
+	}
 	return c
 }

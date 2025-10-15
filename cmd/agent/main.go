@@ -9,8 +9,8 @@ import (
 )
 
 func main() {
-	c := config.GetConfig() // Parse command-line arguments
-	m := models.NewMetricsMap()
+	c := config.GetConfig()     // Parse command-line arguments.
+	m := models.NewMetricsMap() // Init client and map for metrics.
 
 	fmt.Println("Start metrics agent...")
 	fmt.Printf("With flags:\n -p %v\n -r %v\n\n", c.PollInterval, c.ReportInterval)
