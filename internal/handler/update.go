@@ -8,7 +8,9 @@ import (
 	"strings"
 
 	models "github.com/Vladis-r/metrics.git/internal/model"
+	"github.com/Vladis-r/metrics.git/internal/model/logger"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func Update(c *gin.Context) {
@@ -49,14 +51,17 @@ func checkMetricsType(metricType, metricValue string) (value interface{}, err er
 	switch metricType {
 	case models.Counter:
 		if value, err = strconv.ParseInt(metricValue, 10, 64); err != nil {
+			logger.Log.Error("Failed to parse: invalid syntax", zap.String("metricValue", metricValue), zap.Error(err))
 			return value, fmt.Errorf("func: checkMetricsType. strconv.ParseInt: parsing %v: invalid syntax", metricValue)
 		}
 	case models.Gauge:
 		if value, err = strconv.ParseFloat(metricValue, 64); err != nil {
+			logger.Log.Error("Failed to parse: invalid syntax", zap.String("metricValue", metricValue), zap.Error(err))
 			return value, fmt.Errorf("func: checkMetricsType. strconv.ParseFloat: parsing %v: invalid syntax", metricValue)
 		}
 	default:
-		return value, fmt.Errorf("bad request with metricType=%v, metricValue=%v", metricValue, metricValue)
+		logger.Log.Error("Bad request", zap.String("metricValue", metricValue), zap.String("metricType", metricType))
+		return value, fmt.Errorf("bad request with metricType=%v, metricValue=%v", metricType, metricValue)
 	}
 	return value, nil
 }
