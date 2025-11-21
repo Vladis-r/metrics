@@ -17,7 +17,7 @@ func Value(s *models.MemStorage) gin.HandlerFunc {
 		}
 		existItem, ok := s.Store[item.ID]
 		if !ok {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Metric not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Metric not found"})
 			return
 		}
 		c.JSON(http.StatusCreated, gin.H{"data": existItem})
