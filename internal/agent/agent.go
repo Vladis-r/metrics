@@ -1,13 +1,12 @@
 package agent
 
 import (
+	"bytes"
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"reflect"
 	"runtime"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Vladis-r/metrics.git/cmd/config"
@@ -28,34 +27,28 @@ func GoReportMetrics(m *models.MetricsMap, c *config.Config) {
 
 // sendMetrics - create url and send metrics to server.
 func sendMetrics(m *models.MetricsMap, c *config.Config) (err error) {
-	client := m.Client
 	copyData := m.CopyData()
-	for key, metricValue := range copyData {
-		splittedString := strings.Split(key, "-")
-		metricName, metricType := splittedString[0], splittedString[1]
-		fullURL := fmt.Sprintf("http://%s%s/%s/%s/%s", c.Addr, "/update", metricType, metricName, metricValue)
-		req, err := http.NewRequest("POST", fullURL, nil)
-		if err != nil {
-			return fmt.Errorf("func: sendMetrics; error while NewRequest: %w", err)
-		}
-
-		resp, err := client.Do(req)
-		if err != nil {
-			return fmt.Errorf("func: sendMetrics; error while client.Do(req): %w", err)
-		}
-
-		defer resp.Body.Close()
-		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("func: sendMetrics; statusCode is not OK: %w", err)
-		}
+	jsonData, err := json.Marshal(copyData)
+	if err != nil {
+		return fmt.Errorf("func: sendMetrics; error while json.Marshal(copyData): %w", err)
 	}
+	fullURL := fmt.Sprintf("http://%s/%s", c.Addr, "update")
+	resp, err := http.Post(fullURL, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return fmt.Errorf("func: sendMetrics; error while http.Post: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("func: sendMetrics; statusCode is not OK: %w", err)
+	}
+
 	return nil
 }
 
 // GoUpdateMetrics - func for update metrics.
-func GoUpdateMetrics(m *models.MetricsMap, c *config.Config) {
+func GoUpdateMetrics(m *models.MetricsMap, cfg *config.Config) {
 	defer m.Wg.Done()
-	ticker := time.NewTicker(time.Duration(c.PollInterval) * time.Second)
+	ticker := time.NewTicker(time.Duration(cfg.PollInterval) * time.Second)
 	defer ticker.Stop()
 
 	for t := range ticker.C {
@@ -67,42 +60,64 @@ func GoUpdateMetrics(m *models.MetricsMap, c *config.Config) {
 }
 
 // updateMetrics - save metrics in data by key.
-func updateMetrics(data map[string]string) {
+func updateMetrics(data map[string]models.Metric) {
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
-	for key := range data {
-		switch key {
-		// custom keys
-		case "PollCount-counter":
-			data[key] = getPollCounterMetric(data[key])
-		case "RandomValue-gauge":
-			data[key] = getRandomValueMetric()
-		// runtime keys
-		default:
-			data[key] = getRunTimeMetrics(key, memStats)
-		}
-	}
+
+	upRuntimeMetrics(data, memStats)
+	upPollCounterMetric(data)
+	upRandomValueMetric(data)
 }
 
-// getRandomValueMetric - return random value in string.
-func getRandomValueMetric() string {
+func upRuntimeMetrics(data map[string]models.Metric, memStats runtime.MemStats) {
+	floatptr := func(v float64) *float64 { return &v }
+	intptr := func(v int64) *int64 { return &v }
+
+	data["Alloc"] = models.Metric{ID: "Alloc", Delta: intptr(int64(memStats.Alloc))}
+	data["TotalAlloc"] = models.Metric{ID: "TotalAlloc", Delta: intptr(int64(memStats.TotalAlloc))}
+	data["Sys"] = models.Metric{ID: "Sys", Delta: intptr(int64(memStats.Sys))}
+	data["Lookups"] = models.Metric{ID: "Lookups", Delta: intptr(int64(memStats.Lookups))}
+	data["Mallocs"] = models.Metric{ID: "Mallocs", Delta: intptr(int64(memStats.Mallocs))}
+	data["Frees"] = models.Metric{ID: "Frees", Delta: intptr(int64(memStats.Frees))}
+	data["HeapAlloc"] = models.Metric{ID: "HeapAlloc", Delta: intptr(int64(memStats.HeapAlloc))}
+	data["HeapSys"] = models.Metric{ID: "HeapSys", Delta: intptr(int64(memStats.HeapSys))}
+	data["HeapIdle"] = models.Metric{ID: "HeapIdle", Delta: intptr(int64(memStats.HeapIdle))}
+	data["HeapInuse"] = models.Metric{ID: "HeapInuse", Delta: intptr(int64(memStats.HeapInuse))}
+	data["HeapReleased"] = models.Metric{ID: "HeapReleased", Delta: intptr(int64(memStats.HeapReleased))}
+	data["HeapObjects"] = models.Metric{ID: "HeapObjects", Delta: intptr(int64(memStats.HeapObjects))}
+	data["StackInuse"] = models.Metric{ID: "StackInuse", Delta: intptr(int64(memStats.StackInuse))}
+	data["StackSys"] = models.Metric{ID: "StackSys", Delta: intptr(int64(memStats.StackSys))}
+	data["MSpanInuse"] = models.Metric{ID: "MSpanInuse", Delta: intptr(int64(memStats.MSpanInuse))}
+	data["MSpanSys"] = models.Metric{ID: "MSpanSys", Delta: intptr(int64(memStats.MSpanSys))}
+	data["MCacheInuse"] = models.Metric{ID: "MCacheInuse", Delta: intptr(int64(memStats.MCacheInuse))}
+	data["MCacheSys"] = models.Metric{ID: "MCacheSys", Delta: intptr(int64(memStats.MCacheSys))}
+	data["BuckHashSys"] = models.Metric{ID: "BuckHashSys", Delta: intptr(int64(memStats.BuckHashSys))}
+	data["GCSys"] = models.Metric{ID: "GCSys", Delta: intptr(int64(memStats.GCSys))}
+	data["OtherSys"] = models.Metric{ID: "OtherSys", Delta: intptr(int64(memStats.OtherSys))}
+	data["NextGC"] = models.Metric{ID: "NextGC", Delta: intptr(int64(memStats.NextGC))}
+	data["LastGC"] = models.Metric{ID: "LastGC", Delta: intptr(int64(memStats.LastGC))}
+	data["PauseTotalNs"] = models.Metric{ID: "PauseTotalNs", Delta: intptr(int64(memStats.PauseTotalNs))}
+	data["NumGC"] = models.Metric{ID: "NumGC", Delta: intptr(int64(memStats.NumGC))}
+	data["GCCPUFraction"] = models.Metric{ID: "Delta", Value: floatptr(float64(memStats.GCCPUFraction))}
+}
+
+// getRandomValueMetric - The RandomValue metric. A random number is generated each time.
+func upRandomValueMetric(data map[string]models.Metric) {
+	var key = "RandomValue"
 	randInt, _ := rand.Prime(rand.Reader, 64)
 	randFloat, _ := randInt.Float64()
-	return fmt.Sprintf("%f", randFloat)
+	data[key] = models.Metric{ID: key, Value: &randFloat}
 }
 
-// getPollCounterMetric - count update metrics.
-func getPollCounterMetric(counter string) string {
-	v, err := strconv.Atoi(counter)
-	if err != nil {
-		v = -1
+// getPollCounterMetric - The PollCount metric. Counts the number of updates.
+func upPollCounterMetric(data map[string]models.Metric) {
+	var (
+		counter int64
+		key     = "PollCount"
+	)
+	if _, ok := data[key]; ok {
+		counter = *data[key].Delta
 	}
-	return fmt.Sprintf("%d", v+1)
-}
-
-// getRunTimeMetrics - find metric by name and return in string.
-func getRunTimeMetrics(key string, memStats runtime.MemStats) string {
-	name := strings.Split(key, "-")[0]
-	value := fmt.Sprintf("%v", reflect.ValueOf(memStats).FieldByName(name))
-	return value
+	counter++
+	data[key] = models.Metric{ID: key, Delta: &counter}
 }

@@ -9,11 +9,11 @@ import (
 )
 
 func main() {
-	c := config.GetConfig()     // Parse command-line arguments.
+	cfg := config.GetConfig()   // Parse command-line arguments.
 	m := models.NewMetricsMap() // Init client and map for metrics.
 
 	fmt.Println("Start metrics agent...")
-	fmt.Printf("With config:\n PollInterval: %v\n ReportInterval: %v\n\n", c.PollInterval, c.ReportInterval)
+	fmt.Printf("With config:\n PollInterval: %v\n ReportInterval: %v\n\n", cfg.PollInterval, cfg.ReportInterval)
 
 	goroutines := []func(*models.MetricsMap, *config.Config){
 		agent.GoUpdateMetrics,
@@ -22,7 +22,7 @@ func main() {
 
 	for _, goroutine := range goroutines {
 		m.Wg.Add(1)
-		go goroutine(m, c)
+		go goroutine(m, cfg)
 	}
 
 	fmt.Println("Press Ctrl+C to exit")

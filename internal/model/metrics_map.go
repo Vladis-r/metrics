@@ -7,7 +7,7 @@ import (
 
 // MetricsMap - struct for agent with save metrics and send them to server.
 type MetricsMap struct {
-	Data   map[string]string
+	Data   map[string]Metric
 	Mu     sync.RWMutex
 	Wg     sync.WaitGroup
 	Client *http.Client
@@ -15,50 +15,20 @@ type MetricsMap struct {
 
 func NewMetricsMap() *MetricsMap {
 	return &MetricsMap{
-		Data: map[string]string{
-			// Runtime
-			"Alloc-counter":        "value",
-			"BuckHashSys-counter":  "value",
-			"Frees-counter":        "value",
-			"GCCPUFraction-gauge":  "value",
-			"GCSys-counter":        "value",
-			"HeapAlloc-counter":    "value",
-			"HeapIdle-counter":     "value",
-			"HeapInuse-counter":    "value",
-			"HeapObjects-counter":  "value",
-			"HeapReleased-counter": "value",
-			"HeapSys-counter":      "value",
-			"LastGC-counter":       "value",
-			"Lookups-counter":      "value",
-			"MCacheInuse-counter":  "value",
-			"MCacheSys-counter":    "value",
-			"MSpanInuse-counter":   "value",
-			"MSpanSys-counter":     "value",
-			"Mallocs-counter":      "value",
-			"NextGC-counter":       "value",
-			"NumForcedGC-counter":  "value",
-			"NumGC-counter":        "value",
-			"OtherSys-counter":     "value",
-			"PauseTotalNs-counter": "value",
-			"StackInuse-counter":   "value",
-			"StackSys-counter":     "value",
-			"Sys-counter":          "value",
-			"TotalAlloc-counter":   "value",
-			// Custom
-			"PollCount-counter": "value",
-			"RandomValue-gauge": "value",
-		},
+		Data:   map[string]Metric{},
 		Client: &http.Client{},
 	}
 }
 
 // CopyData - return copy of data map for send on server.
-func (m *MetricsMap) CopyData() map[string]string {
+func (m *MetricsMap) CopyData() []Metric {
 	m.Mu.RLock()
-	newMap := make(map[string]string, len(m.Data))
-	for k, v := range m.Data {
-		newMap[k] = v
+	sl := make([]Metric, len(m.Data))
+	idx := 0
+	for _, v := range m.Data {
+		sl[idx] = v
+		idx++
 	}
 	m.Mu.RUnlock()
-	return newMap
+	return sl
 }
