@@ -32,7 +32,7 @@ func TestValue(t *testing.T) {
 			jsonData: []byte(`{"id": "noName","type": "gauge","value": 1744184459}`),
 			method:   http.MethodPost,
 			url:      "/value",
-			want:     http.StatusBadRequest,
+			want:     http.StatusNotFound,
 		},
 	}
 
