@@ -25,7 +25,7 @@ func TestValue(t *testing.T) {
 			storage:  &models.MemStorage{},
 			method:   http.MethodPost,
 			url:      "/value",
-			want:     http.StatusCreated,
+			want:     http.StatusOK,
 		},
 		{
 			name:     "Test 2. Check StatusBadRequest. Noname ID.",
