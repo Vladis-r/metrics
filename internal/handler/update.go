@@ -32,7 +32,7 @@ func Update(s *models.MemStorage) gin.HandlerFunc {
 				return
 			}
 			// all metrics is ok.
-			c.JSON(http.StatusCreated, gin.H{"data": metrics, "count": len(metrics)})
+			c.JSON(http.StatusOK, gin.H{"data": metrics, "count": len(metrics)})
 			return
 		}
 		// Parsed single metric.
@@ -46,6 +46,6 @@ func Update(s *models.MemStorage) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusCreated, gin.H{"data": metric})
+		c.JSON(http.StatusOK, gin.H{"data": metric})
 	}
 }
