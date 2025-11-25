@@ -26,7 +26,7 @@ func ValueTypeName(s *models.MemStorage) gin.HandlerFunc {
 		// Get metric from storage.
 		metric, ok := s.GetMetric(id)
 		if !ok {
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"error": "Metric not found",
 			})
 			return
