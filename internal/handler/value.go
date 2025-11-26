@@ -22,6 +22,10 @@ func Value(s *models.MemStorage) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Metric not found"})
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"data": existItem})
+		if existItem.Value != nil {
+			c.JSON(http.StatusOK, gin.H{"id": existItem.ID, "type": existItem.MType, "value": *existItem.Value})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"id": existItem.ID, "type": existItem.MType, "value": *existItem.Delta})
 	}
 }
