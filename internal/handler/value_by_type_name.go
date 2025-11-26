@@ -16,7 +16,7 @@ func ValueTypeName(s *models.MemStorage) gin.HandlerFunc {
 		var val interface{}
 
 		mType := strings.ToLower(c.Param("metricType"))
-		id := strings.ToLower(c.Param("metricName"))
+		id := c.Param("metricName")
 		// Check metric type.
 		if _, err := utils.CheckMetric(mType, "1"); err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -26,9 +26,7 @@ func ValueTypeName(s *models.MemStorage) gin.HandlerFunc {
 		// Get metric from storage.
 		metric, ok := s.GetMetric(id)
 		if !ok {
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-				"error": "Metric not found",
-			})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Metric not found"})
 			return
 		}
 		if metric.Value != nil {

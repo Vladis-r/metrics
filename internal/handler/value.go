@@ -2,7 +2,6 @@ package handler
 
 import (
 	"net/http"
-	"strings"
 
 	models "github.com/Vladis-r/metrics.git/internal/model"
 	"github.com/gin-gonic/gin"
@@ -16,8 +15,7 @@ func Value(s *models.MemStorage) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		id := strings.ToLower(metric.ID)
-		existItem, ok := s.Store[id]
+		existItem, ok := s.Store[metric.ID]
 		if !ok {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Metric not found"})
 			return

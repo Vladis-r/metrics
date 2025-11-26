@@ -18,8 +18,8 @@ func UpdateTypeNameValue(s *models.MemStorage) gin.HandlerFunc {
 		)
 
 		metricType := strings.ToLower(c.Param("metricType"))
-		metricName := strings.ToLower(c.Param("metricName"))
-		metricValue := strings.ToLower(c.Param("metricValue"))
+		metricName := c.Param("metricName")
+		metricValue := c.Param("metricValue")
 		// check possible metricTypes from constants.
 		if !slices.Contains([]string{models.Counter, models.Gauge}, metricType) {
 			c.AbortWithStatus(http.StatusBadRequest)

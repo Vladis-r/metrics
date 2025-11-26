@@ -65,8 +65,8 @@ func (m *MemStorage) SaveMetric(metric *Metric) error {
 		return fmt.Errorf("func: SaveMetric; bad request. metric: %v", metric)
 	}
 	// Save metric.
-	metric.ID = strings.ToLower(metric.ID)
-	metric.MType = strings.ToLower(metric.MType)
+	// metric.ID = strings.ToLower(metric.ID)
+	// metric.MType = strings.ToLower(metric.MType)
 	m.Store[metric.ID] = *metric
 	return nil
 }

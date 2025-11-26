@@ -50,7 +50,7 @@ func TestValueTypeName(t *testing.T) {
 			tt.storage = storage
 			if tt.save {
 				splitURL := strings.Split(tt.url, "/")
-				tt.storage.SaveMetricByTypeValue(strings.ToLower(splitURL[3]), strings.ToLower(splitURL[2]), int64(99))
+				tt.storage.SaveMetricByTypeValue(splitURL[3], splitURL[2], int64(99))
 			}
 
 			req, _ := http.NewRequest(tt.method, tt.url, nil)
