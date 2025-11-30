@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	models "github.com/Vladis-r/metrics.git/internal/model"
@@ -16,10 +17,12 @@ func Value(s *models.MemStorage) gin.HandlerFunc {
 			return
 		}
 		existItem, ok := s.Store[metric.ID]
+		fmt.Printf("/value - OK: %v, get value: %v\n", ok, existItem)
 		if !ok {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Metric not found"})
 			return
 		}
+
 		if existItem.Value != nil {
 			c.JSON(http.StatusOK, gin.H{"id": existItem.ID, "type": existItem.MType, "value": *existItem.Value})
 			return
