@@ -21,10 +21,13 @@ func Value(s *models.MemStorage) gin.HandlerFunc {
 			return
 		}
 
-		if existItem.MType == "gauge" {
+		switch metric.MType {
+		case "gauge":
 			c.JSON(http.StatusOK, gin.H{"id": existItem.ID, "type": existItem.MType, "value": *existItem.Value})
-			return
+		case "counter":
+			c.JSON(http.StatusOK, gin.H{"id": existItem.ID, "type": existItem.MType, "value": *existItem.Delta})
+		default:
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Metric not found"})
 		}
-		c.JSON(http.StatusOK, gin.H{"id": existItem.ID, "type": existItem.MType, "value": *existItem.Delta})
 	}
 }
