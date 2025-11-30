@@ -45,7 +45,8 @@ func Middleware(l *zap.Logger) gin.HandlerFunc {
 			zap.String("url", c.Request.URL.Path),
 			zap.String("method", c.Request.Method),
 			zap.Duration("duration", duration),
-			zap.String("body", truncateString(string(body), 1024)),
+			zap.String("body", string(body)),
+			// zap.String("body", truncateString(string(body), 1024)),
 		)
 		l.Info("Response",
 			zap.Int("status", statusCode),
@@ -63,9 +64,9 @@ func InitLogger() (err error) {
 	return nil
 }
 
-func truncateString(s string, max int) string {
-	if len(s) <= max {
-		return s
-	}
-	return s[:max] + "... [truncated]"
-}
+// func truncateString(s string, max int) string {
+// 	if len(s) <= max {
+// 		return s
+// 	}
+// 	return s[:max] + "... [truncated]"
+// }
