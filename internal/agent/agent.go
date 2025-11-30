@@ -28,6 +28,7 @@ func GoReportMetrics(m *models.MetricsMap, c *config.Config) {
 // sendMetrics - create url and send metrics to server.
 func sendMetrics(m *models.MetricsMap, c *config.Config) (err error) {
 	copyData := m.CopyData()
+
 	jsonData, err := json.Marshal(copyData)
 	if err != nil {
 		return fmt.Errorf("func: sendMetrics; error while json.Marshal(copyData): %w", err)
@@ -73,32 +74,32 @@ func upRuntimeMetrics(data map[string]models.Metric, memStats runtime.MemStats) 
 	floatptr := func(v float64) *float64 { return &v }
 	intptr := func(v int64) *int64 { return &v }
 
-	data["Alloc"] = models.Metric{ID: "Alloc", Delta: intptr(int64(memStats.Alloc))}
-	data["TotalAlloc"] = models.Metric{ID: "TotalAlloc", Delta: intptr(int64(memStats.TotalAlloc))}
-	data["Sys"] = models.Metric{ID: "Sys", Delta: intptr(int64(memStats.Sys))}
-	data["Lookups"] = models.Metric{ID: "Lookups", Delta: intptr(int64(memStats.Lookups))}
-	data["Mallocs"] = models.Metric{ID: "Mallocs", Delta: intptr(int64(memStats.Mallocs))}
-	data["Frees"] = models.Metric{ID: "Frees", Delta: intptr(int64(memStats.Frees))}
-	data["HeapAlloc"] = models.Metric{ID: "HeapAlloc", Delta: intptr(int64(memStats.HeapAlloc))}
-	data["HeapSys"] = models.Metric{ID: "HeapSys", Delta: intptr(int64(memStats.HeapSys))}
-	data["HeapIdle"] = models.Metric{ID: "HeapIdle", Delta: intptr(int64(memStats.HeapIdle))}
-	data["HeapInuse"] = models.Metric{ID: "HeapInuse", Delta: intptr(int64(memStats.HeapInuse))}
-	data["HeapReleased"] = models.Metric{ID: "HeapReleased", Delta: intptr(int64(memStats.HeapReleased))}
-	data["HeapObjects"] = models.Metric{ID: "HeapObjects", Delta: intptr(int64(memStats.HeapObjects))}
-	data["StackInuse"] = models.Metric{ID: "StackInuse", Delta: intptr(int64(memStats.StackInuse))}
-	data["StackSys"] = models.Metric{ID: "StackSys", Delta: intptr(int64(memStats.StackSys))}
-	data["MSpanInuse"] = models.Metric{ID: "MSpanInuse", Delta: intptr(int64(memStats.MSpanInuse))}
-	data["MSpanSys"] = models.Metric{ID: "MSpanSys", Delta: intptr(int64(memStats.MSpanSys))}
-	data["MCacheInuse"] = models.Metric{ID: "MCacheInuse", Delta: intptr(int64(memStats.MCacheInuse))}
-	data["MCacheSys"] = models.Metric{ID: "MCacheSys", Delta: intptr(int64(memStats.MCacheSys))}
-	data["BuckHashSys"] = models.Metric{ID: "BuckHashSys", Delta: intptr(int64(memStats.BuckHashSys))}
-	data["GCSys"] = models.Metric{ID: "GCSys", Delta: intptr(int64(memStats.GCSys))}
-	data["OtherSys"] = models.Metric{ID: "OtherSys", Delta: intptr(int64(memStats.OtherSys))}
-	data["NextGC"] = models.Metric{ID: "NextGC", Delta: intptr(int64(memStats.NextGC))}
-	data["LastGC"] = models.Metric{ID: "LastGC", Delta: intptr(int64(memStats.LastGC))}
-	data["PauseTotalNs"] = models.Metric{ID: "PauseTotalNs", Delta: intptr(int64(memStats.PauseTotalNs))}
-	data["NumGC"] = models.Metric{ID: "NumGC", Delta: intptr(int64(memStats.NumGC))}
-	data["GCCPUFraction"] = models.Metric{ID: "Delta", Value: floatptr(float64(memStats.GCCPUFraction))}
+	data["Alloc"] = models.Metric{ID: "Alloc", MType: "counter", Delta: intptr(int64(memStats.Alloc))}
+	data["TotalAlloc"] = models.Metric{ID: "TotalAlloc", MType: "counter", Delta: intptr(int64(memStats.TotalAlloc))}
+	data["Sys"] = models.Metric{ID: "Sys", MType: "counter", Delta: intptr(int64(memStats.Sys))}
+	data["Lookups"] = models.Metric{ID: "Lookups", MType: "counter", Delta: intptr(int64(memStats.Lookups))}
+	data["Mallocs"] = models.Metric{ID: "Mallocs", MType: "counter", Delta: intptr(int64(memStats.Mallocs))}
+	data["Frees"] = models.Metric{ID: "Frees", MType: "counter", Delta: intptr(int64(memStats.Frees))}
+	data["HeapAlloc"] = models.Metric{ID: "HeapAlloc", MType: "counter", Delta: intptr(int64(memStats.HeapAlloc))}
+	data["HeapSys"] = models.Metric{ID: "HeapSys", MType: "counter", Delta: intptr(int64(memStats.HeapSys))}
+	data["HeapIdle"] = models.Metric{ID: "HeapIdle", MType: "counter", Delta: intptr(int64(memStats.HeapIdle))}
+	data["HeapInuse"] = models.Metric{ID: "HeapInuse", MType: "counter", Delta: intptr(int64(memStats.HeapInuse))}
+	data["HeapReleased"] = models.Metric{ID: "HeapReleased", MType: "counter", Delta: intptr(int64(memStats.HeapReleased))}
+	data["HeapObjects"] = models.Metric{ID: "HeapObjects", MType: "counter", Delta: intptr(int64(memStats.HeapObjects))}
+	data["StackInuse"] = models.Metric{ID: "StackInuse", MType: "counter", Delta: intptr(int64(memStats.StackInuse))}
+	data["StackSys"] = models.Metric{ID: "StackSys", MType: "counter", Delta: intptr(int64(memStats.StackSys))}
+	data["MSpanInuse"] = models.Metric{ID: "MSpanInuse", MType: "counter", Delta: intptr(int64(memStats.MSpanInuse))}
+	data["MSpanSys"] = models.Metric{ID: "MSpanSys", MType: "counter", Delta: intptr(int64(memStats.MSpanSys))}
+	data["MCacheInuse"] = models.Metric{ID: "MCacheInuse", MType: "counter", Delta: intptr(int64(memStats.MCacheInuse))}
+	data["MCacheSys"] = models.Metric{ID: "MCacheSys", MType: "counter", Delta: intptr(int64(memStats.MCacheSys))}
+	data["BuckHashSys"] = models.Metric{ID: "BuckHashSys", MType: "counter", Delta: intptr(int64(memStats.BuckHashSys))}
+	data["GCSys"] = models.Metric{ID: "GCSys", MType: "counter", Delta: intptr(int64(memStats.GCSys))}
+	data["OtherSys"] = models.Metric{ID: "OtherSys", MType: "counter", Delta: intptr(int64(memStats.OtherSys))}
+	data["NextGC"] = models.Metric{ID: "NextGC", MType: "counter", Delta: intptr(int64(memStats.NextGC))}
+	data["LastGC"] = models.Metric{ID: "LastGC", MType: "counter", Delta: intptr(int64(memStats.LastGC))}
+	data["PauseTotalNs"] = models.Metric{ID: "PauseTotalNs", MType: "counter", Delta: intptr(int64(memStats.PauseTotalNs))}
+	data["NumGC"] = models.Metric{ID: "NumGC", MType: "counter", Delta: intptr(int64(memStats.NumGC))}
+	data["GCCPUFraction"] = models.Metric{ID: "Delta", MType: "gauge", Value: floatptr(float64(memStats.GCCPUFraction))}
 }
 
 // getRandomValueMetric - The RandomValue metric. A random number is generated each time.
@@ -106,7 +107,7 @@ func upRandomValueMetric(data map[string]models.Metric) {
 	var key = "RandomValue"
 	randInt, _ := rand.Prime(rand.Reader, 64)
 	randFloat, _ := randInt.Float64()
-	data[key] = models.Metric{ID: key, Value: &randFloat}
+	data[key] = models.Metric{ID: key, MType: "counter", Value: &randFloat}
 }
 
 // getPollCounterMetric - The PollCount metric. Counts the number of updates.
@@ -119,5 +120,5 @@ func upPollCounterMetric(data map[string]models.Metric) {
 		counter = *data[key].Delta
 	}
 	counter++
-	data[key] = models.Metric{ID: key, Delta: &counter}
+	data[key] = models.Metric{ID: key, MType: "counter", Delta: &counter}
 }
