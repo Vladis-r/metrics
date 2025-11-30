@@ -107,16 +107,23 @@ func (m *MemStorage) saveIntMetric(id string, metricValue int64) {
 
 // ValidateMetric - check metric type and value in Metrict struct.
 func (m *MemStorage) validateMetric(metric *Metric) bool {
+	mType := strings.ToLower(metric.MType)
 	// Check metric type.
-	if !slices.Contains([]string{Counter, Gauge}, strings.ToLower(metric.MType)) {
+	if !slices.Contains([]string{Counter, Gauge}, mType) {
 		return false
 	}
 	// Check that value is exist.
 	if metric.Value == nil && metric.Delta == nil {
 		return false
 	}
-	// Limit ID is 30 characters.
-	if len(metric.ID) > 30 {
+	// Limit ID is 40 characters.
+	if len(metric.ID) == 0 || len(metric.ID) > 40 {
+		return false
+	}
+	if mType == Gauge && metric.Value == nil {
+		return false
+	}
+	if mType == Counter && metric.Delta == nil {
 		return false
 	}
 	return true
