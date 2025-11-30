@@ -16,7 +16,7 @@ func Value(s *models.MemStorage) gin.HandlerFunc {
 			return
 		}
 		existItem, ok := s.Store[metric.ID]
-		if !ok {
+		if !ok || metric.MType != existItem.MType {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Metric not found"})
 			return
 		}
