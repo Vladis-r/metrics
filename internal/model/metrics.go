@@ -19,8 +19,8 @@ const (
 type Metric struct {
 	ID       string   `json:"id"`
 	MType    string   `json:"type"`
-	Delta    *int64   `json:"delta,omitempty"`
-	Value    *float64 `json:"value,omitempty"`
+	Delta    *int64   `json:"delta,omitempty" doc:"Возвращает значение для типа counter."`
+	Value    *float64 `json:"value,omitempty" doc:"Возвращает значение для типа gauge."`
 	Hash     string   `json:"hash,omitempty"`
 	ValueSum float64
 	DeltaSum int64
@@ -60,13 +60,9 @@ func (m *MemStorage) SaveMetricByTypeValue(id, mType string, value interface{}) 
 
 // SaveMetric - save metric by struct Metric.
 func (m *MemStorage) SaveMetric(metric *Metric) error {
-	// Validation metric.
 	if ok := m.validateMetric(metric); !ok {
 		return fmt.Errorf("func: SaveMetric; bad request. metric: %v", metric)
 	}
-	// Save metric.
-	// metric.ID = strings.ToLower(metric.ID)
-	// metric.MType = strings.ToLower(metric.MType)
 	m.Store[metric.ID] = *metric
 	return nil
 }
