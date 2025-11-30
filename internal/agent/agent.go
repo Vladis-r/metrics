@@ -99,7 +99,7 @@ func upRuntimeMetrics(data map[string]models.Metric, memStats runtime.MemStats) 
 	data["LastGC"] = models.Metric{ID: "LastGC", MType: "counter", Delta: intptr(int64(memStats.LastGC))}
 	data["PauseTotalNs"] = models.Metric{ID: "PauseTotalNs", MType: "counter", Delta: intptr(int64(memStats.PauseTotalNs))}
 	data["NumGC"] = models.Metric{ID: "NumGC", MType: "counter", Delta: intptr(int64(memStats.NumGC))}
-	data["GCCPUFraction"] = models.Metric{ID: "Delta", MType: "gauge", Value: floatptr(float64(memStats.GCCPUFraction))}
+	data["GCCPUFraction"] = models.Metric{ID: "GCCPUFraction", MType: "gauge", Value: floatptr(float64(memStats.GCCPUFraction))}
 }
 
 // getRandomValueMetric - The RandomValue metric. A random number is generated each time.
