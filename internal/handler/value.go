@@ -17,12 +17,13 @@ func Value(s *models.MemStorage) gin.HandlerFunc {
 			return
 		}
 		existItem, ok := s.Store[metric.ID]
-		if !ok || strings.ToLower(metric.MType) != existItem.MType {
+		mType := strings.ToLower(metric.MType)
+		if !ok || mType != existItem.MType {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Metric not found"})
 			return
 		}
 
-		switch metric.MType {
+		switch mType {
 		case "gauge":
 			c.JSON(http.StatusOK, gin.H{"id": existItem.ID, "type": existItem.MType, "value": *existItem.Value})
 		case "counter":
