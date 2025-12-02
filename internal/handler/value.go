@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strings"
 
 	models "github.com/Vladis-r/metrics.git/internal/model"
 	"github.com/gin-gonic/gin"
@@ -16,7 +17,7 @@ func Value(s *models.MemStorage) gin.HandlerFunc {
 			return
 		}
 		existItem, ok := s.Store[metric.ID]
-		if !ok || metric.MType != existItem.MType {
+		if !ok || strings.ToLower(metric.MType) != existItem.MType {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Metric not found"})
 			return
 		}
