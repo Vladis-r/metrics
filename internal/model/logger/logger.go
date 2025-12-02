@@ -50,7 +50,8 @@ func Middleware(l *zap.Logger) gin.HandlerFunc {
 		)
 		l.Info("Response",
 			zap.Int("status", statusCode),
-			zap.Int64("size", int64(size)))
+			zap.Int64("size", int64(size)),
+			zap.String("body", string(body)))
 	}
 }
 
