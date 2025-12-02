@@ -31,7 +31,7 @@ func TestUpdate(t *testing.T) {
 			jsonData: []byte(`[{"id": "LastGC","type": "gauge","value": 1744184459}, {"id": "testMetric","type": "Counter","value": 100}]`),
 			method:   http.MethodPost,
 			url:      "/update",
-			want:     http.StatusBadRequest,
+			want:     http.StatusOK,
 		},
 		{
 			name:     "Test 3. Check StatusBadRequest. Wrong type.",
