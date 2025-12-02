@@ -28,6 +28,16 @@ func Middleware(l *zap.Logger) gin.HandlerFunc {
 			c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 		}
 
+		writer := &responseWriter{body: bytes.NewBuffer(nil), ResponseWriter: c.Writer}
+		c.Writer = writer
+
+		l.Info("Request",
+			zap.String("url", c.Request.URL.Path),
+			zap.String("method", c.Request.Method),
+			zap.String("body", string(body)),
+			// zap.String("body", truncateString(string(body), 1024)),
+		)
+
 		c.Next()
 
 		statusCode := c.Writer.Status()
@@ -38,20 +48,13 @@ func Middleware(l *zap.Logger) gin.HandlerFunc {
 		if size < 0 {
 			size = 0
 		}
-
 		duration := time.Since(start)
 
-		l.Info("Request",
-			zap.String("url", c.Request.URL.Path),
-			zap.String("method", c.Request.Method),
-			zap.Duration("duration", duration),
-			zap.String("body", string(body)),
-			// zap.String("body", truncateString(string(body), 1024)),
-		)
 		l.Info("Response",
 			zap.Int("status", statusCode),
-			zap.Int64("size", int64(size)),
-			zap.String("body", string(body)))
+			zap.String("body", writer.body.String()),
+			zap.Duration("duration", duration),
+			zap.Int64("size", int64(size)))
 	}
 }
 
@@ -71,3 +74,15 @@ func InitLogger() (err error) {
 // 	}
 // 	return s[:max] + "... [truncated]"
 // }
+
+// responseWriter — обёртка над gin.ResponseWriter для захвата тела ответа.
+type responseWriter struct {
+	gin.ResponseWriter
+	body *bytes.Buffer
+}
+
+// Write — перехватываем запись тела ответа
+func (w *responseWriter) Write(data []byte) (int, error) {
+	w.body.Write(data)
+	return w.ResponseWriter.Write(data)
+}
