@@ -63,7 +63,7 @@ func (m *MemStorage) SaveMetric(metric *Metric) error {
 	if ok := m.validateMetric(metric); !ok {
 		return fmt.Errorf("func: SaveMetric; bad request. metric: %v", metric)
 	}
-	if metric.MType == Counter {
+	if metric.MType == Counter && metric.Delta == nil {
 		i := int64(*metric.Value)
 		metric.Delta = &i
 		metric.Value = nil
