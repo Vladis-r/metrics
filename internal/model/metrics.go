@@ -63,12 +63,19 @@ func (m *MemStorage) SaveMetric(metric *Metric) error {
 	if ok := m.validateMetric(metric); !ok {
 		return fmt.Errorf("func: SaveMetric; bad request. metric: %v", metric)
 	}
-	if metric.MType == Counter && metric.Delta == nil {
-		i := int64(*metric.Value)
-		metric.Delta = &i
-		metric.Value = nil
+	// if metric.MType == Counter && metric.Delta == nil {
+	// 	i := int64(*metric.Value)
+	// 	metric.Delta = &i
+	// 	metric.Value = nil
+	// }
+	metric.MType = strings.ToLower(metric.MType)
+	switch metric.MType {
+	case Counter:
+		m.Store[fmt.Sprintf("counter_%v", metric.ID)] = *metric
+	case Gauge:
+		m.Store[fmt.Sprintf("gauge_%v", metric.ID)] = *metric
 	}
-	m.Store[metric.ID] = *metric
+
 	return nil
 }
 
