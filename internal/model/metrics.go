@@ -66,6 +66,14 @@ func (m *MemStorage) SaveMetric(metric *Metric) error {
 	metric.MType = strings.ToLower(metric.MType)
 	switch metric.MType {
 	case Counter:
+		var item Metric
+		var ok bool
+		key := fmt.Sprintf("counter_%v", metric.ID)
+		if item, ok = m.Store[key]; ok {
+			metric.DeltaSum = item.DeltaSum + *metric.Delta
+		} else {
+			metric.DeltaSum = *metric.Delta
+		}
 		m.Store[fmt.Sprintf("counter_%v", metric.ID)] = *metric
 	case Gauge:
 		m.Store[fmt.Sprintf("gauge_%v", metric.ID)] = *metric

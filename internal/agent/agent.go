@@ -66,7 +66,7 @@ func updateMetrics(data map[string]models.Metric) {
 	runtime.ReadMemStats(&memStats)
 
 	upRuntimeMetrics(data, memStats)
-	upPollCounterMetric(data)
+	upCounterMetric(data, "PollCount")
 	upRandomValueMetric(data)
 }
 
@@ -111,11 +111,8 @@ func upRandomValueMetric(data map[string]models.Metric) {
 }
 
 // getPollCounterMetric - The PollCount metric. Counts the number of updates.
-func upPollCounterMetric(data map[string]models.Metric) {
-	var (
-		counter int64
-		key     = "PollCount"
-	)
+func upCounterMetric(data map[string]models.Metric, key string) {
+	var counter int64
 	if _, ok := data[key]; ok {
 		counter = *data[key].Delta
 	}
