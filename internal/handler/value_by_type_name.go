@@ -30,9 +30,9 @@ func ValueTypeName(s *models.MemStorage) gin.HandlerFunc {
 			return
 		}
 		if metric.Value != nil {
-			val = *metric.Value
+			val = metric.ValueSum
 		} else {
-			val = *metric.Delta
+			val = metric.DeltaSum
 		}
 
 		c.String(http.StatusOK, fmt.Sprintf("%v", val))

@@ -22,8 +22,8 @@ type Metric struct {
 	Delta    *int64   `json:"delta,omitempty" doc:"Возвращает значение для типа counter."`
 	Value    *float64 `json:"value,omitempty" doc:"Возвращает значение для типа gauge."`
 	Hash     string   `json:"hash,omitempty"`
-	ValueSum float64
-	DeltaSum int64
+	ValueSum float64  `doc:"аккумулированное значение метрики типа gauge."`
+	DeltaSum int64    `doc:"аккумулированное значение метрики типа counter."`
 }
 
 type MemStorage struct {
