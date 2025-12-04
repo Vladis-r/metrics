@@ -46,6 +46,6 @@ func Update(s *models.MemStorage) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"data": metric})
+		c.JSON(http.StatusOK, metric)
 	}
 }

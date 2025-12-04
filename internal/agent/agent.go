@@ -114,9 +114,8 @@ func upRandomValueMetric(data map[string]models.Metric) {
 func upCounterMetric(data map[string]models.Metric, key string) {
 	var counter int64
 	if _, ok := data[key]; ok {
-		counter = data[key].DeltaSum
+		counter = *data[key].Delta
 	}
 	counter++
-	var i int64 = 1
-	data[key] = models.Metric{ID: key, MType: "counter", Delta: &i, DeltaSum: counter}
+	data[key] = models.Metric{ID: key, MType: "counter", Delta: &counter}
 }

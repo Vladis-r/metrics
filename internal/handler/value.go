@@ -10,7 +10,7 @@ import (
 )
 
 // Value - POST handler for get metric with JSON in body.
-func Value(s *models.MemStorage) gin.HandlerFunc {
+func Value(m *models.MemStorage) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var (
 			metric    models.Metric
@@ -21,11 +21,14 @@ func Value(s *models.MemStorage) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
+
 		switch metric.MType {
 		case models.Counter:
-			existItem, ok = s.Store[fmt.Sprintf("counter_%v", metric.ID)]
+			existItem, ok = m.Store[fmt.Sprintf("counter_%v", metric.ID)]
 		case models.Gauge:
-			existItem, ok = s.Store[fmt.Sprintf("gauge_%v", metric.ID)]
+			existItem, ok = m.Store[fmt.Sprintf("gauge_%v", metric.ID)]
+		default:
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Metric not found"})
 		}
 
 		mType := strings.ToLower(metric.MType)
@@ -33,14 +36,6 @@ func Value(s *models.MemStorage) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Metric not found"})
 			return
 		}
-
-		switch mType {
-		case "gauge":
-			c.JSON(http.StatusOK, gin.H{"id": existItem.ID, "type": existItem.MType, "value": *existItem.Value})
-		case "counter":
-			c.JSON(http.StatusOK, gin.H{"id": existItem.ID, "type": existItem.MType, "value": existItem.DeltaSum})
-		default:
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Metric not found"})
-		}
+		c.JSON(http.StatusOK, existItem)
 	}
 }

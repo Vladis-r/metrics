@@ -17,13 +17,11 @@ const (
 // что бы отличать значение "0", от не заданного значения
 // и соответственно не кодировать в структуру.
 type Metric struct {
-	ID       string   `json:"id"`
-	MType    string   `json:"type"`
-	Delta    *int64   `json:"delta,omitempty" doc:"Возвращает значение для типа counter."`
-	Value    *float64 `json:"value,omitempty" doc:"Возвращает значение для типа gauge."`
-	Hash     string   `json:"hash,omitempty"`
-	ValueSum float64  `doc:"аккумулированное значение метрики типа gauge."`
-	DeltaSum int64    `doc:"аккумулированное значение метрики типа counter."`
+	ID    string   `json:"id"`
+	MType string   `json:"type"`
+	Delta *int64   `json:"delta,omitempty" doc:"Возвращает значение для типа counter."`
+	Value *float64 `json:"value,omitempty" doc:"Возвращает значение для типа gauge."`
+	Hash  string   `json:"hash,omitempty"`
 }
 
 type MemStorage struct {
@@ -60,16 +58,14 @@ func (m *MemStorage) SaveMetricByTypeValue(id, mType string, value interface{}) 
 
 // SaveMetric - save metric by struct Metric.
 func (m *MemStorage) SaveMetric(metric *Metric) error {
-	if ok := m.validateMetric(metric); !ok {
+	if ok := m.ValidateMetric(metric); !ok {
 		return fmt.Errorf("func: SaveMetric; bad request. metric: %v", metric)
 	}
 	metric.MType = strings.ToLower(metric.MType)
 	switch metric.MType {
 	case Counter:
 		if item, ok := m.Store[fmt.Sprintf("counter_%v", metric.ID)]; ok {
-			metric.DeltaSum = item.DeltaSum + *metric.Delta
-		} else {
-			metric.DeltaSum = metric.DeltaSum + *metric.Delta
+			*metric.Delta += *item.Delta
 		}
 		m.Store[fmt.Sprintf("counter_%v", metric.ID)] = *metric
 	case Gauge:
@@ -80,45 +76,23 @@ func (m *MemStorage) SaveMetric(metric *Metric) error {
 }
 
 func (m *MemStorage) saveFloatMetric(id string, metricValue float64) {
-	if metric, ok := m.Store[id]; ok {
-		valueSum := metric.ValueSum + metricValue
-		m.Store[id] = Metric{
-			ID:       id,
-			MType:    Gauge,
-			Value:    &metricValue,
-			ValueSum: valueSum,
-		}
-	} else {
-		m.Store[id] = Metric{
-			ID:       id,
-			MType:    Gauge,
-			Value:    &metricValue,
-			ValueSum: metricValue,
-		}
+	m.Store[id] = Metric{
+		ID:    id,
+		MType: Gauge,
+		Value: &metricValue,
 	}
 }
 
 func (m *MemStorage) saveIntMetric(id string, metricValue int64) {
-	if metric, ok := m.Store[id]; ok {
-		deltaSum := metric.DeltaSum + metricValue
-		m.Store[id] = Metric{
-			ID:       id,
-			MType:    Counter,
-			Delta:    &metricValue,
-			DeltaSum: deltaSum,
-		}
-	} else {
-		m.Store[id] = Metric{
-			ID:       id,
-			MType:    Counter,
-			Delta:    &metricValue,
-			DeltaSum: metricValue,
-		}
+	m.Store[id] = Metric{
+		ID:    id,
+		MType: Counter,
+		Delta: &metricValue,
 	}
 }
 
 // ValidateMetric - check metric type and value in Metrict struct.
-func (m *MemStorage) validateMetric(metric *Metric) bool {
+func (m *MemStorage) ValidateMetric(metric *Metric) bool {
 	mType := strings.ToLower(metric.MType)
 	if mType == Counter && metric.Delta == nil {
 		return false
