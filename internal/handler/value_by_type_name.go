@@ -30,7 +30,7 @@ func ValueTypeName(s *models.MemStorage) gin.HandlerFunc {
 			return
 		}
 		if metric.Value != nil {
-			val = metric.Value
+			val = *metric.Value
 		} else {
 			val = metric.DeltaSum
 		}
