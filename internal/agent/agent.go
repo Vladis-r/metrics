@@ -72,7 +72,6 @@ func updateMetrics(data map[string]models.Metric) {
 
 func upRuntimeMetrics(data map[string]models.Metric, memStats runtime.MemStats) {
 	floatptr := func(v float64) *float64 { return &v }
-	// intptr := func(v int64) *int64 { return &v }
 
 	data["Alloc"] = models.Metric{ID: "Alloc", MType: "gauge", Value: floatptr(float64(memStats.Alloc))}
 	data["TotalAlloc"] = models.Metric{ID: "TotalAlloc", MType: "gauge", Value: floatptr(float64(memStats.TotalAlloc))}
@@ -115,8 +114,9 @@ func upRandomValueMetric(data map[string]models.Metric) {
 func upCounterMetric(data map[string]models.Metric, key string) {
 	var counter int64
 	if _, ok := data[key]; ok {
-		counter = *data[key].Delta
+		counter = data[key].DeltaSum
 	}
 	counter++
-	data[key] = models.Metric{ID: key, MType: "counter", Delta: &counter}
+	var i int64 = 1
+	data[key] = models.Metric{ID: key, MType: "counter", Delta: &i, DeltaSum: counter}
 }

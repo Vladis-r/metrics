@@ -29,7 +29,7 @@ func prepareMetrics(s *models.MemStorage) []metricsResult {
 	for _, v := range s.Store {
 		val = v.Value
 		if v.Value == nil {
-			val = v.Delta
+			val = v.DeltaSum
 		}
 		add := metricsResult{
 			ID:    v.ID,
