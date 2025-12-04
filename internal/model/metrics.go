@@ -66,14 +66,7 @@ func (m *MemStorage) SaveMetric(metric *Metric) error {
 	metric.MType = strings.ToLower(metric.MType)
 	switch metric.MType {
 	case Counter:
-		var item Metric
-		var ok bool
-		key := fmt.Sprintf("counter_%v", metric.ID)
-		if item, ok = m.Store[key]; ok {
-			metric.DeltaSum = item.DeltaSum + *metric.Delta
-		} else {
-			metric.DeltaSum = *metric.Delta
-		}
+		metric.DeltaSum = metric.DeltaSum + *metric.Delta
 		m.Store[fmt.Sprintf("counter_%v", metric.ID)] = *metric
 	case Gauge:
 		m.Store[fmt.Sprintf("gauge_%v", metric.ID)] = *metric
@@ -123,12 +116,14 @@ func (m *MemStorage) saveIntMetric(id string, metricValue int64) {
 // ValidateMetric - check metric type and value in Metrict struct.
 func (m *MemStorage) validateMetric(metric *Metric) bool {
 	mType := strings.ToLower(metric.MType)
-	// Check metric type.
-	if !slices.Contains([]string{Counter, Gauge}, mType) {
+	if mType == Counter && metric.Delta == nil {
 		return false
 	}
-	// Check that value is exist.
-	if metric.Value == nil && metric.Delta == nil {
+	if mType == Gauge && metric.Value == nil {
+		return false
+	}
+	// Check metric type.
+	if !slices.Contains([]string{Counter, Gauge}, mType) {
 		return false
 	}
 	// Limit ID is 40 characters.
