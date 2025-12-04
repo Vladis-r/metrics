@@ -38,7 +38,7 @@ func Value(s *models.MemStorage) gin.HandlerFunc {
 		case "gauge":
 			c.JSON(http.StatusOK, gin.H{"id": existItem.ID, "type": existItem.MType, "value": *existItem.Value})
 		case "counter":
-			c.JSON(http.StatusOK, gin.H{"id": existItem.ID, "type": existItem.MType, "value": *existItem.Delta})
+			c.JSON(http.StatusOK, gin.H{"id": existItem.ID, "type": existItem.MType, "value": existItem.DeltaSum})
 		default:
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Metric not found"})
 		}
