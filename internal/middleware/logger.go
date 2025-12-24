@@ -1,4 +1,4 @@
-package logger
+package middleware
 
 import (
 	"bytes"
@@ -11,8 +11,20 @@ import (
 
 var Log *zap.Logger
 
-// Middleware - wraps HTTP handlers for logger.
-func Middleware(l *zap.Logger) gin.HandlerFunc {
+// responseWriter — обёртка над gin.ResponseWriter для захвата тела ответа.
+type responseWriter struct {
+	gin.ResponseWriter
+	body *bytes.Buffer
+}
+
+// Write — перехватываем запись тела ответа
+func (w *responseWriter) Write(data []byte) (int, error) {
+	w.body.Write(data)
+	return w.ResponseWriter.Write(data)
+}
+
+// Loger - wraps HTTP handlers for logger.
+func Logger(l *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 
@@ -27,6 +39,9 @@ func Middleware(l *zap.Logger) gin.HandlerFunc {
 			}
 			c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 		}
+		if c.Request.URL.Path == "/" {
+			body = []byte{}
+		}
 
 		writer := &responseWriter{body: bytes.NewBuffer(nil), ResponseWriter: c.Writer}
 		c.Writer = writer
@@ -35,7 +50,6 @@ func Middleware(l *zap.Logger) gin.HandlerFunc {
 			zap.String("url", c.Request.URL.Path),
 			zap.String("method", c.Request.Method),
 			zap.String("body", string(body)),
-			// zap.String("body", truncateString(string(body), 1024)),
 		)
 
 		c.Next()
@@ -50,9 +64,14 @@ func Middleware(l *zap.Logger) gin.HandlerFunc {
 		}
 		duration := time.Since(start)
 
+		bodyResp := ""
+		if c.Request.URL.Path != "/" {
+			bodyResp = writer.body.String()
+		}
+
 		l.Info("Response",
 			zap.Int("status", statusCode),
-			zap.String("body", writer.body.String()),
+			zap.String("body", bodyResp),
 			zap.Duration("duration", duration),
 			zap.Int64("size", int64(size)))
 	}
@@ -66,23 +85,4 @@ func InitLogger() (err error) {
 	}
 
 	return nil
-}
-
-// func truncateString(s string, max int) string {
-// 	if len(s) <= max {
-// 		return s
-// 	}
-// 	return s[:max] + "... [truncated]"
-// }
-
-// responseWriter — обёртка над gin.ResponseWriter для захвата тела ответа.
-type responseWriter struct {
-	gin.ResponseWriter
-	body *bytes.Buffer
-}
-
-// Write — перехватываем запись тела ответа
-func (w *responseWriter) Write(data []byte) (int, error) {
-	w.body.Write(data)
-	return w.ResponseWriter.Write(data)
 }
