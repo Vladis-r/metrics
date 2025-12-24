@@ -26,27 +26,6 @@ func GoReportMetrics(m *models.MetricsMap, c *config.Config) {
 	}
 }
 
-// sendJSONMetrics - Ssend metrics to server like JSON.
-func sendJSONMetrics(m *models.MetricsMap, c *config.Config) (err error) {
-	copyData := m.CopyData()
-
-	jsonData, err := json.Marshal(copyData)
-	if err != nil {
-		return fmt.Errorf("func: sendMetrics; error while json.Marshal(copyData): %w", err)
-	}
-	fullURL := fmt.Sprintf("http://%s/%s", c.Addr, "update")
-	resp, err := http.Post(fullURL, "application/json", bytes.NewBuffer(jsonData))
-	if err != nil {
-		return fmt.Errorf("func: sendMetrics; error while http.Post: %w", err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("func: sendMetrics; statusCode is not OK: %w", err)
-	}
-
-	return nil
-}
-
 // sendGzipMetrics - send metric with gzip compress.
 func sendGzipMetrics(m *models.MetricsMap, c *config.Config) (err error) {
 	copyData := m.CopyData()
