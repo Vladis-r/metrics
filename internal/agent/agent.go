@@ -26,8 +26,8 @@ func GoReportMetrics(m *models.MetricsMap, c *config.Config) {
 	}
 }
 
-// sendJsonMetrics - Ssend metrics to server like JSON.
-func sendJsonMetrics(m *models.MetricsMap, c *config.Config) (err error) {
+// sendJSONMetrics - Ssend metrics to server like JSON.
+func sendJSONMetrics(m *models.MetricsMap, c *config.Config) (err error) {
 	copyData := m.CopyData()
 
 	jsonData, err := json.Marshal(copyData)
