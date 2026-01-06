@@ -15,7 +15,7 @@ import (
 )
 
 // GoReportMetrics - func for send metrics to server.
-func GoReportMetrics(m *models.MetricsMap, c *config.Config) {
+func GoReportMetrics(m *models.MetricsMap, c *config.ConfigAgent) {
 	defer m.Wg.Done()
 	ticker := time.NewTicker(time.Duration(c.ReportInterval) * time.Second)
 	defer ticker.Stop()
@@ -27,7 +27,7 @@ func GoReportMetrics(m *models.MetricsMap, c *config.Config) {
 }
 
 // sendGzipMetrics - send metric with gzip compress.
-func sendGzipMetrics(m *models.MetricsMap, c *config.Config) (err error) {
+func sendGzipMetrics(m *models.MetricsMap, c *config.ConfigAgent) (err error) {
 	copyData := m.CopyData()
 
 	var buf bytes.Buffer
@@ -60,7 +60,7 @@ func sendGzipMetrics(m *models.MetricsMap, c *config.Config) (err error) {
 }
 
 // GoUpdateMetrics - func for update metrics.
-func GoUpdateMetrics(m *models.MetricsMap, cfg *config.Config) {
+func GoUpdateMetrics(m *models.MetricsMap, cfg *config.ConfigAgent) {
 	defer m.Wg.Done()
 	ticker := time.NewTicker(time.Duration(cfg.PollInterval) * time.Second)
 	defer ticker.Stop()

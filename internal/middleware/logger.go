@@ -9,8 +9,6 @@ import (
 	"go.uber.org/zap"
 )
 
-var Log *zap.Logger
-
 // responseWriter — обёртка над gin.ResponseWriter для захвата тела ответа.
 type responseWriter struct {
 	gin.ResponseWriter
@@ -78,11 +76,7 @@ func Logger(l *zap.Logger) gin.HandlerFunc {
 }
 
 // InitLogger - инициализация логгера.
-func InitLogger() (err error) {
-	Log, err = zap.NewProduction()
-	if err != nil {
-		Log.Panic("Cant init logger!")
-	}
-
-	return nil
+func InitLogger() (logger *zap.Logger, err error) {
+	logger, err = zap.NewProduction()
+	return logger, err
 }

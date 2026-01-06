@@ -1,26 +1,34 @@
 package main
 
 import (
+	"log"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/Vladis-r/metrics.git/cmd/config"
 	"github.com/Vladis-r/metrics.git/internal/handler"
 	"github.com/Vladis-r/metrics.git/internal/middleware"
 	models "github.com/Vladis-r/metrics.git/internal/model"
+	"github.com/Vladis-r/metrics.git/internal/server"
 )
 
 func main() {
-	c := config.GetConfig() // get config
-	middleware.InitLogger() // create logger
-	defer middleware.Log.Sync()
+	logger, err := middleware.InitLogger() // create logger
+	if err != nil {
+		log.Fatalf("Cant create logger: %v", err)
+	}
+	defer logger.Sync()
 
-	var s = models.NewMemStorage() // Global storage for metrics.
+	conf := config.GetConfigServer(logger)     // get config
+	var s = models.NewMemStorage(conf, logger) // Global storage for views.
+	server.LoadMetricsFromFile(s)
+	go server.SaveMetricsToFile(s) // Save metrics to file.
 
-	r := gin.New()                           // Create a new Gin instance
-	r.Use(middleware.Logger(middleware.Log)) // Add logger middleware
-	r.Use(middleware.Gzip())                 // Add gzip comression and decompression.
-	r.LoadHTMLGlob("templates/*.html")       // Load HTML templates
-	r.Static("/static", "./static")          // Serve static files from the "static" directory
+	r := gin.New()                     // Create a new Gin instance
+	r.Use(middleware.Logger(logger))   // Add logger middleware
+	r.Use(middleware.Gzip())           // Add gzip comression and decompression.
+	r.LoadHTMLGlob("templates/*.html") // Load HTML templates
+	r.Static("/static", "./static")    // Serve static files from the "static" directory
 
 	// handlers
 	r.GET("/", handler.Root(s))
@@ -31,5 +39,5 @@ func main() {
 	r.POST("/value", handler.Value(s))
 	r.GET("/value/:metricType/:metricName", handler.ValueTypeName(s))
 
-	r.Run(c.Addr) // Start server localhost:8080 by default
+	r.Run(conf.Addr) // Start server localhost:8080 by default
 }

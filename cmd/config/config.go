@@ -4,39 +4,110 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
+
+	"go.uber.org/zap"
 )
 
-type Config struct {
-	Addr           string
-	ReportInterval int
-	PollInterval   int
+type ConfigServer struct {
+	Addr            string `doc:"ip addr for server."`
+	StoreInterval   int    `doc:"Interval for save metrics in file."`
+	FileStoragePath string `doc:"Path and filename for save metrics."`
+	IsRestore       bool   `doc:"Sign that get metrics from file while start server."`
 }
 
-func GetConfig() *Config {
-	c := &Config{}
-	flag.StringVar(&c.Addr, "a", "localhost:8080", "Address to listen on")
-	flag.IntVar(&c.ReportInterval, "r", 10, "Interval for reporting metrics")
-	flag.IntVar(&c.PollInterval, "p", 2, "Interval for polling metrics")
+type ConfigAgent struct {
+	Addr           string `doc:"Ip addr for send metrcis to server."`
+	ReportInterval int    `doc:"Interval for send metrics to server."`
+	PollInterval   int    `doc:"Interval for update metrics."`
+}
 
+// GetConfigServer - config for server.
+func GetConfigServer(logger *zap.Logger) *ConfigServer {
+	c := &ConfigServer{}
+	flag.StringVar(&c.Addr, "a", "localhost:8080", "Address to listen on.")
+	flag.IntVar(&c.StoreInterval, "i", 10, "Interval for save metrics in file.")
+	flag.StringVar(&c.FileStoragePath, "f", "metric_log.json", "Path to file where save metrics.")
+	flag.BoolVar(&c.IsRestore, "r", false, "If true load saved metrics from file while start server.")
 	flag.Parse()
 
-	if addr := os.Getenv("ADDRESS"); addr != "" {
-		c.Addr = addr
+	address := os.Getenv("ADDRESS")                   // ip address for server
+	storeInterval := os.Getenv("STORE_INTERVAL")      // interval for save metrics in file
+	fileStoragePath := os.Getenv("FILE_STORAGE_PATH") // path to file where save metrics
+	isRestore := os.Getenv("RESTORE")                 // if true load saved metrics from file while start server
+
+	switch {
+	case address != "":
+		c.Addr = address
+	case storeInterval != "":
+		if i, err := strconv.Atoi(storeInterval); err == nil && i > 0 {
+			c.StoreInterval = i
+		} else {
+			logger.Error("Invalid STORE_INTERVAL, must be positive: ", zap.String("STORE_INTERVAL", storeInterval))
+		}
+	case fileStoragePath != "":
+		if err := isValidStoragePath(fileStoragePath); err == nil {
+			c.FileStoragePath = fileStoragePath
+		} else {
+			logger.Error("Invalid FILE_STORAGE_PATH: ", zap.String("FILE_STORAGE_PATH", fileStoragePath))
+		}
+	case isRestore != "":
+		c.IsRestore = strings.ToLower(isRestore) == "true"
 	}
-	if reportStr := os.Getenv("REPORT_INTERVAL"); reportStr != "" {
-		if i, err := strconv.Atoi(reportStr); err == nil && i > 0 {
+
+	return c
+}
+
+// GetConfigAgent - config for agent.
+func GetConfigAgent(logger *zap.Logger) *ConfigAgent {
+	c := &ConfigAgent{}
+
+	flag.StringVar(&c.Addr, "a", "localhost:8080", "Address to listen on.")
+	flag.IntVar(&c.ReportInterval, "r", 10, "Interval for reporting metrics.")
+	flag.IntVar(&c.PollInterval, "p", 2, "Interval for polling metrics.")
+	flag.Parse()
+
+	address := os.Getenv("ADDRESS")                // ip address for server
+	reportInterval := os.Getenv("REPORT_INTERVAL") // interval for send metrics to server
+	poolInterval := os.Getenv("POLL_INTERVAL")     // interval for update metrics
+
+	switch {
+	case address != "":
+		c.Addr = address
+	case reportInterval != "":
+		if i, err := strconv.Atoi(reportInterval); err == nil && i > 0 {
 			c.ReportInterval = i
 		} else {
-			fmt.Printf("Invalid REPORT_INTERVAL, must be positive: %s\n", reportStr)
+			logger.Error("Invalid REPORT_INTERVAL, must be positive: ", zap.String("REPORT_INTERVAL", reportInterval))
 		}
-	}
-	if pollStr := os.Getenv("POLL_INTERVAL"); pollStr != "" {
-		if i, err := strconv.Atoi(pollStr); err == nil && i > 0 {
+	case poolInterval != "":
+		if i, err := strconv.Atoi(poolInterval); err == nil && i > 0 {
 			c.PollInterval = i
 		} else {
-			fmt.Printf("Invalid POLL_INTERVAL, must be positive: %s\n", pollStr)
+			logger.Error("Invalid POLL_INTERVAL, must be positive: ", zap.String("POLL_INTERVAL", poolInterval))
 		}
 	}
+
 	return c
+}
+
+func isValidStoragePath(path string) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return fmt.Errorf("Path is not exist: %s", path)
+		}
+		return fmt.Errorf("Path error: %v", err)
+	}
+
+	if !info.IsDir() {
+		return fmt.Errorf("Path is not directory: %s", path)
+	}
+	if strings.Contains(filepath.Clean(path), "..") {
+		return fmt.Errorf("Incorrected path with '..'")
+	}
+
+	return nil
 }

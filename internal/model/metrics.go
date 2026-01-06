@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"sync"
+
+	"github.com/Vladis-r/metrics.git/cmd/config"
+	"go.uber.org/zap"
 )
 
 const (
@@ -26,11 +30,16 @@ type Metric struct {
 
 type MemStorage struct {
 	Store map[string]Metric
+	C     *config.ConfigServer
+	Log   *zap.Logger
+	Mu    sync.RWMutex
 }
 
-func NewMemStorage() *MemStorage {
+func NewMemStorage(config *config.ConfigServer, logger *zap.Logger) *MemStorage {
 	return &MemStorage{
 		Store: make(map[string]Metric),
+		C:     config,
+		Log:   logger,
 	}
 }
 
@@ -64,12 +73,12 @@ func (m *MemStorage) SaveMetric(metric *Metric) error {
 	metric.MType = strings.ToLower(metric.MType)
 	switch metric.MType {
 	case Counter:
-		if item, ok := m.Store[fmt.Sprintf("counter_%v", metric.ID)]; ok {
+		if item, ok := m.Store[metric.ID]; ok {
 			*metric.Delta += *item.Delta
 		}
-		m.Store[fmt.Sprintf("counter_%v", metric.ID)] = *metric
+		m.Store[metric.ID] = *metric
 	case Gauge:
-		m.Store[fmt.Sprintf("gauge_%v", metric.ID)] = *metric
+		m.Store[metric.ID] = *metric
 	}
 
 	return nil
