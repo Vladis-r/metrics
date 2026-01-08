@@ -15,35 +15,40 @@ func SaveMetricsToFile(s *models.MemStorage) {
 	defer ticker.Stop()
 
 	for range ticker.C {
-		s.Mu.RLock()
-		metrics := s.Store
-		s.Mu.RUnlock()
-
-		listOfMetrics := make([]models.Metric, len(metrics))
-		idx := 0
-		for _, v := range metrics {
-			listOfMetrics[idx] = v
-			idx++
-		}
-
-		tmpFile := s.C.FileStoragePath + ".tmp"
-		file, err := os.OpenFile(tmpFile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
-		if err != nil {
-			s.Log.Error("Error: Cant open file for save metrics!", zap.Error(err))
-		}
-		encoder := json.NewEncoder(file)
-		encoder.SetIndent("", "  ")
-		err = encoder.Encode(listOfMetrics)
-		if err != nil {
-			s.Log.Error("Error: cant write metrics in file!", zap.Error(err))
-		}
-		file.Close()
-
-		if err := os.Rename(tmpFile, s.C.FileStoragePath); err != nil {
-			s.Log.Error("Error: cant rename tmp file with metrics!", zap.Error(err))
-		}
-		s.Log.Info("Metrics succesfull save in file")
+		saveMetricsToFileLogic(s)
 	}
+}
+
+// saveMetricsToFileLogic - logic for SaveMetricsToFile.
+func saveMetricsToFileLogic(s *models.MemStorage) {
+	s.Mu.RLock()
+	metrics := s.Store
+	s.Mu.RUnlock()
+
+	listOfMetrics := make([]models.Metric, len(metrics))
+	idx := 0
+	for _, v := range metrics {
+		listOfMetrics[idx] = v
+		idx++
+	}
+
+	tmpFile := s.C.FileStoragePath + ".tmp"
+	file, err := os.OpenFile(tmpFile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
+	if err != nil {
+		s.Log.Error("Error: Cant open file for save metrics!", zap.Error(err))
+	}
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	err = encoder.Encode(listOfMetrics)
+	if err != nil {
+		s.Log.Error("Error: cant write metrics in file!", zap.Error(err))
+	}
+	file.Close()
+
+	if err := os.Rename(tmpFile, s.C.FileStoragePath); err != nil {
+		s.Log.Error("Error: cant rename tmp file with metrics!", zap.Error(err))
+	}
+	s.Log.Info("Metrics succesfull save in file")
 }
 
 // LoadMetricsFromFile - load metrics from file and save in Store.
