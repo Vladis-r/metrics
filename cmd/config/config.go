@@ -45,13 +45,13 @@ func GetConfigServer(logger *zap.Logger) *ConfigServer {
 		if i, err := strconv.Atoi(storeInterval); err == nil && i > 0 {
 			c.StoreInterval = i
 		} else {
-			logger.Error("Invalid STORE_INTERVAL, must be positive: ", zap.String("STORE_INTERVAL", storeInterval))
+			logger.Error("invalid STORE_INTERVAL, must be positive: ", zap.String("STORE_INTERVAL", storeInterval))
 		}
 	case fileStoragePath != "":
 		if err := isValidStoragePath(fileStoragePath); err == nil {
 			c.FileStoragePath = fileStoragePath
 		} else {
-			logger.Error("Invalid FILE_STORAGE_PATH: ", zap.String("FILE_STORAGE_PATH", fileStoragePath))
+			logger.Error("invalid FILE_STORAGE_PATH: ", zap.String("FILE_STORAGE_PATH", fileStoragePath))
 		}
 	case isRestore != "":
 		c.IsRestore = strings.ToLower(isRestore) == "true"
@@ -80,13 +80,13 @@ func GetConfigAgent(logger *zap.Logger) *ConfigAgent {
 		if i, err := strconv.Atoi(reportInterval); err == nil && i > 0 {
 			c.ReportInterval = i
 		} else {
-			logger.Error("Invalid REPORT_INTERVAL, must be positive: ", zap.String("REPORT_INTERVAL", reportInterval))
+			logger.Error("invalid REPORT_INTERVAL, must be positive: ", zap.String("REPORT_INTERVAL", reportInterval))
 		}
 	case poolInterval != "":
 		if i, err := strconv.Atoi(poolInterval); err == nil && i > 0 {
 			c.PollInterval = i
 		} else {
-			logger.Error("Invalid POLL_INTERVAL, must be positive: ", zap.String("POLL_INTERVAL", poolInterval))
+			logger.Error("invalid POLL_INTERVAL, must be positive: ", zap.String("POLL_INTERVAL", poolInterval))
 		}
 	}
 
@@ -97,16 +97,16 @@ func isValidStoragePath(path string) error {
 	info, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return fmt.Errorf("Path is not exist: %s", path)
+			return fmt.Errorf("path is not exist: %s", path)
 		}
-		return fmt.Errorf("Path error: %v", err)
+		return fmt.Errorf("path error: %v", err)
 	}
 
 	if !info.IsDir() {
-		return fmt.Errorf("Path is not directory: %s", path)
+		return fmt.Errorf("path is not directory: %s", path)
 	}
 	if strings.Contains(filepath.Clean(path), "..") {
-		return fmt.Errorf("Incorrected path with '..'")
+		return fmt.Errorf("incorrected path with '..'")
 	}
 
 	return nil
