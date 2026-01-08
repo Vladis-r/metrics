@@ -33,10 +33,10 @@ func GetConfigServer(logger *zap.Logger) *ConfigServer {
 	flag.BoolVar(&c.IsRestore, "r", false, "If true load saved metrics from file while start server.")
 	flag.Parse()
 
-	address := os.Getenv("ADDRESS")                   // ip address for server
-	storeInterval := os.Getenv("STORE_INTERVAL")      // interval for save metrics in file
-	fileStoragePath := os.Getenv("FILE_STORAGE_PATH") // path to file where save metrics
-	isRestore := os.Getenv("RESTORE")                 // if true load saved metrics from file while start server
+	address := strings.ToLower(os.Getenv("ADDRESS"))                   // ip address for server
+	storeInterval := strings.ToLower(os.Getenv("STORE_INTERVAL"))      // interval for save metrics in file
+	fileStoragePath := strings.ToLower(os.Getenv("FILE_STORAGE_PATH")) // path to file where save metrics
+	isRestore := strings.ToLower(os.Getenv("RESTORE"))                 // if true load saved metrics from file while start server
 
 	switch {
 	case address != "":
@@ -69,9 +69,9 @@ func GetConfigAgent(logger *zap.Logger) *ConfigAgent {
 	flag.IntVar(&c.PollInterval, "p", 2, "Interval for polling metrics.")
 	flag.Parse()
 
-	address := os.Getenv("ADDRESS")                // ip address for server
-	reportInterval := os.Getenv("REPORT_INTERVAL") // interval for send metrics to server
-	poolInterval := os.Getenv("POLL_INTERVAL")     // interval for update metrics
+	address := strings.ToLower(os.Getenv("ADDRESS"))                // ip address for server
+	reportInterval := strings.ToLower(os.Getenv("REPORT_INTERVAL")) // interval for send metrics to server
+	poolInterval := strings.ToLower(os.Getenv("POLL_INTERVAL"))     // interval for update metrics
 
 	switch {
 	case address != "":
