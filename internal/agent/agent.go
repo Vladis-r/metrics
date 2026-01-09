@@ -12,6 +12,7 @@ import (
 
 	"github.com/Vladis-r/metrics.git/cmd/config"
 	models "github.com/Vladis-r/metrics.git/internal/model"
+	ut "github.com/Vladis-r/metrics.git/internal/utils"
 )
 
 // GoReportMetrics - func for send metrics to server.
@@ -84,35 +85,33 @@ func updateMetrics(data map[string]models.Metric) {
 }
 
 func upRuntimeMetrics(data map[string]models.Metric, memStats runtime.MemStats) {
-	floatptr := func(v float64) *float64 { return &v }
-
-	data["Alloc"] = models.Metric{ID: "Alloc", MType: "gauge", Value: floatptr(float64(memStats.Alloc))}
-	data["TotalAlloc"] = models.Metric{ID: "TotalAlloc", MType: "gauge", Value: floatptr(float64(memStats.TotalAlloc))}
-	data["Sys"] = models.Metric{ID: "Sys", MType: "gauge", Value: floatptr(float64(memStats.Sys))}
-	data["Lookups"] = models.Metric{ID: "Lookups", MType: "gauge", Value: floatptr(float64(memStats.Lookups))}
-	data["Mallocs"] = models.Metric{ID: "Mallocs", MType: "gauge", Value: floatptr(float64(memStats.Mallocs))}
-	data["Frees"] = models.Metric{ID: "Frees", MType: "gauge", Value: floatptr(float64(memStats.Frees))}
-	data["HeapAlloc"] = models.Metric{ID: "HeapAlloc", MType: "gauge", Value: floatptr(float64(memStats.HeapAlloc))}
-	data["HeapSys"] = models.Metric{ID: "HeapSys", MType: "gauge", Value: floatptr(float64(memStats.HeapSys))}
-	data["HeapIdle"] = models.Metric{ID: "HeapIdle", MType: "gauge", Value: floatptr(float64(memStats.HeapIdle))}
-	data["HeapInuse"] = models.Metric{ID: "HeapInuse", MType: "gauge", Value: floatptr(float64(memStats.HeapInuse))}
-	data["HeapReleased"] = models.Metric{ID: "HeapReleased", MType: "gauge", Value: floatptr(float64(memStats.HeapReleased))}
-	data["HeapObjects"] = models.Metric{ID: "HeapObjects", MType: "gauge", Value: floatptr(float64(memStats.HeapObjects))}
-	data["StackInuse"] = models.Metric{ID: "StackInuse", MType: "gauge", Value: floatptr(float64(memStats.StackInuse))}
-	data["StackSys"] = models.Metric{ID: "StackSys", MType: "gauge", Value: floatptr(float64(memStats.StackSys))}
-	data["MSpanInuse"] = models.Metric{ID: "MSpanInuse", MType: "gauge", Value: floatptr(float64(memStats.MSpanInuse))}
-	data["MSpanSys"] = models.Metric{ID: "MSpanSys", MType: "gauge", Value: floatptr(float64(memStats.MSpanSys))}
-	data["MCacheInuse"] = models.Metric{ID: "MCacheInuse", MType: "gauge", Value: floatptr(float64(memStats.MCacheInuse))}
-	data["MCacheSys"] = models.Metric{ID: "MCacheSys", MType: "gauge", Value: floatptr(float64(memStats.MCacheSys))}
-	data["BuckHashSys"] = models.Metric{ID: "BuckHashSys", MType: "gauge", Value: floatptr(float64(memStats.BuckHashSys))}
-	data["GCSys"] = models.Metric{ID: "GCSys", MType: "gauge", Value: floatptr(float64(memStats.GCSys))}
-	data["OtherSys"] = models.Metric{ID: "OtherSys", MType: "gauge", Value: floatptr(float64(memStats.OtherSys))}
-	data["NextGC"] = models.Metric{ID: "NextGC", MType: "gauge", Value: floatptr(float64(memStats.NextGC))}
-	data["LastGC"] = models.Metric{ID: "LastGC", MType: "gauge", Value: floatptr(float64(memStats.LastGC))}
-	data["PauseTotalNs"] = models.Metric{ID: "PauseTotalNs", MType: "gauge", Value: floatptr(float64(memStats.PauseTotalNs))}
-	data["NumGC"] = models.Metric{ID: "NumGC", MType: "gauge", Value: floatptr(float64(memStats.NumGC))}
-	data["GCCPUFraction"] = models.Metric{ID: "GCCPUFraction", MType: "gauge", Value: floatptr(float64(memStats.GCCPUFraction))}
-	data["NumForcedGC"] = models.Metric{ID: "NumForcedGC", MType: "gauge", Value: floatptr(float64(memStats.NumForcedGC))}
+	data["Alloc"] = models.Metric{ID: "Alloc", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.Alloc))}
+	data["TotalAlloc"] = models.Metric{ID: "TotalAlloc", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.TotalAlloc))}
+	data["Sys"] = models.Metric{ID: "Sys", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.Sys))}
+	data["Lookups"] = models.Metric{ID: "Lookups", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.Lookups))}
+	data["Mallocs"] = models.Metric{ID: "Mallocs", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.Mallocs))}
+	data["Frees"] = models.Metric{ID: "Frees", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.Frees))}
+	data["HeapAlloc"] = models.Metric{ID: "HeapAlloc", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.HeapAlloc))}
+	data["HeapSys"] = models.Metric{ID: "HeapSys", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.HeapSys))}
+	data["HeapIdle"] = models.Metric{ID: "HeapIdle", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.HeapIdle))}
+	data["HeapInuse"] = models.Metric{ID: "HeapInuse", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.HeapInuse))}
+	data["HeapReleased"] = models.Metric{ID: "HeapReleased", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.HeapReleased))}
+	data["HeapObjects"] = models.Metric{ID: "HeapObjects", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.HeapObjects))}
+	data["StackInuse"] = models.Metric{ID: "StackInuse", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.StackInuse))}
+	data["StackSys"] = models.Metric{ID: "StackSys", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.StackSys))}
+	data["MSpanInuse"] = models.Metric{ID: "MSpanInuse", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.MSpanInuse))}
+	data["MSpanSys"] = models.Metric{ID: "MSpanSys", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.MSpanSys))}
+	data["MCacheInuse"] = models.Metric{ID: "MCacheInuse", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.MCacheInuse))}
+	data["MCacheSys"] = models.Metric{ID: "MCacheSys", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.MCacheSys))}
+	data["BuckHashSys"] = models.Metric{ID: "BuckHashSys", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.BuckHashSys))}
+	data["GCSys"] = models.Metric{ID: "GCSys", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.GCSys))}
+	data["OtherSys"] = models.Metric{ID: "OtherSys", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.OtherSys))}
+	data["NextGC"] = models.Metric{ID: "NextGC", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.NextGC))}
+	data["LastGC"] = models.Metric{ID: "LastGC", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.LastGC))}
+	data["PauseTotalNs"] = models.Metric{ID: "PauseTotalNs", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.PauseTotalNs))}
+	data["NumGC"] = models.Metric{ID: "NumGC", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.NumGC))}
+	data["GCCPUFraction"] = models.Metric{ID: "GCCPUFraction", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.GCCPUFraction))}
+	data["NumForcedGC"] = models.Metric{ID: "NumForcedGC", MType: "gauge", Value: ut.Float64Ptr(float64(memStats.NumForcedGC))}
 }
 
 // getRandomValueMetric - The RandomValue metric. A random number is generated each time.

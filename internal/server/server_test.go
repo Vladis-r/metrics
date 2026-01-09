@@ -9,6 +9,7 @@ import (
 
 	"github.com/Vladis-r/metrics.git/cmd/config"
 	models "github.com/Vladis-r/metrics.git/internal/model"
+	"github.com/Vladis-r/metrics.git/internal/utils"
 	"go.uber.org/zap"
 
 	"github.com/stretchr/testify/require"
@@ -43,12 +44,12 @@ func TestSaveMetricsToFile(t *testing.T) {
 				"gauge1": {
 					ID:    "gauge1",
 					MType: "gauge",
-					Value: float64Ptr(3.14),
+					Value: utils.Float64Ptr(3.14),
 				},
 				"counter1": {
 					ID:    "counter1",
 					MType: "counter",
-					Delta: int64Ptr(42),
+					Delta: utils.Int64Ptr(42),
 				},
 			},
 		},
@@ -145,12 +146,12 @@ func TestLoadMetricsFromFile(t *testing.T) {
 				{
 					ID:    "gauge1",
 					MType: "gauge",
-					Value: float64Ptr(3.14),
+					Value: utils.Float64Ptr(3.14),
 				},
 				{
 					ID:    "counter1",
 					MType: "counter",
-					Delta: int64Ptr(42),
+					Delta: utils.Int64Ptr(42),
 				},
 			},
 		},
@@ -186,12 +187,4 @@ func TestLoadMetricsFromFile(t *testing.T) {
 			}
 		})
 	}
-}
-
-func float64Ptr(v float64) *float64 {
-	return &v
-}
-
-func int64Ptr(v int64) *int64 {
-	return &v
 }

@@ -23,3 +23,13 @@ func CheckMetric(mType, mValue string) (value interface{}, err error) {
 	}
 	return value, nil
 }
+
+// Float64Ptr - return pointer to float64.
+func Float64Ptr(v float64) *float64 {
+	return &v
+}
+
+// Int64Ptr - return pointer to int64.
+func Int64Ptr(v int64) *int64 {
+	return &v
+}
