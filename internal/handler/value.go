@@ -34,10 +34,24 @@ func Value(s *models.MemStorage) gin.HandlerFunc {
 		}
 
 		if !ok || mType != strings.ToLower(existItem.MType) {
-			s.Log.Info("Not found metric", zap.Any("Metric", metric))
+			s.Log.Info("Metric not found", zap.Any("Metric", metric))
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Metric not found"})
 			return
 		}
 		c.JSON(http.StatusOK, existItem)
 	}
+}
+
+func optionalFloat64(p *float64) float64 {
+	if p == nil {
+		return 0
+	}
+	return *p
+}
+
+func optionalInt64(p *int64) int64 {
+	if p == nil {
+		return 0
+	}
+	return *p
 }
