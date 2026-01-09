@@ -29,3 +29,4 @@ example.json
 makefile
 test_local/
 metric_log.json
+internal/server/test_metrics.json

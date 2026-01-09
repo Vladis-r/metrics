@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -10,7 +9,7 @@ import (
 )
 
 // Value - POST handler for get metric with JSON in body.
-func Value(m *models.MemStorage) gin.HandlerFunc {
+func Value(s *models.MemStorage) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var (
 			metric    models.Metric
@@ -24,9 +23,9 @@ func Value(m *models.MemStorage) gin.HandlerFunc {
 
 		switch metric.MType {
 		case models.Counter:
-			existItem, ok = m.Store[fmt.Sprintf("counter_%v", metric.ID)]
+			existItem, ok = s.Store[metric.ID]
 		case models.Gauge:
-			existItem, ok = m.Store[fmt.Sprintf("gauge_%v", metric.ID)]
+			existItem, ok = s.Store[metric.ID]
 		default:
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Metric not found"})
 		}
