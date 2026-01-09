@@ -43,22 +43,22 @@ func NewMemStorage(config *config.ConfigServer, logger *zap.Logger) *MemStorage 
 	}
 }
 
-func (m *MemStorage) GetMetric(id string) (Metric, bool) {
-	metric, ok := m.Store[id]
+func (s *MemStorage) GetMetric(id string) (Metric, bool) {
+	metric, ok := s.Store[id]
 	return metric, ok
 }
 
-func (m *MemStorage) DeleteMetric(id, mType string) {
-	delete(m.Store, id)
+func (s *MemStorage) DeleteMetric(id, mType string) {
+	delete(s.Store, id)
 }
 
 // SaveMetricByTypeValue - save metric by type and value.
-func (m *MemStorage) SaveMetricByTypeValue(id, mType string, value interface{}) (err error) {
+func (s *MemStorage) SaveMetricByTypeValue(id, mType string, value interface{}) (err error) {
 	switch v := value.(type) {
 	case float64:
-		m.saveFloatMetric(id, v)
+		s.saveFloatMetric(id, v)
 	case int64:
-		m.saveIntMetric(id, v)
+		s.saveIntMetric(id, v)
 	default:
 		return fmt.Errorf("func: SaveMetricByTypeValue; bad request. id: %v, mType: %v, value: %v . err: %v", id, mType, value, err)
 	}
@@ -86,19 +86,19 @@ func (s *MemStorage) SaveMetric(metric *Metric) error {
 	return nil
 }
 
-func (m *MemStorage) saveFloatMetric(id string, metricValue float64) {
-	m.Store[id] = Metric{
+func (s *MemStorage) saveFloatMetric(id string, metricValue float64) {
+	s.Store[id] = Metric{
 		ID:    id,
 		MType: Gauge,
 		Value: &metricValue,
 	}
 }
 
-func (m *MemStorage) saveIntMetric(id string, metricValue int64) {
-	if item, ok := m.Store[id]; ok {
+func (s *MemStorage) saveIntMetric(id string, metricValue int64) {
+	if item, ok := s.Store[id]; ok {
 		metricValue += *item.Delta
 	}
-	m.Store[id] = Metric{
+	s.Store[id] = Metric{
 		ID:    id,
 		MType: Counter,
 		Delta: &metricValue,
@@ -106,7 +106,7 @@ func (m *MemStorage) saveIntMetric(id string, metricValue int64) {
 }
 
 // ValidateMetric - check metric type and value in Metrict struct.
-func (m *MemStorage) ValidateMetric(metric *Metric) bool {
+func (s *MemStorage) ValidateMetric(metric *Metric) bool {
 	mType := strings.ToLower(metric.MType)
 	if mType == Counter && metric.Delta == nil {
 		return false
