@@ -95,6 +95,7 @@ func (m *MemStorage) saveFloatMetric(id string, metricValue float64) {
 func (m *MemStorage) saveIntMetric(id string, metricValue int64) {
 	if item, ok := m.Store[id]; ok {
 		metricValue += *item.Delta
+		return
 	}
 	m.Store[id] = Metric{
 		ID:    id,

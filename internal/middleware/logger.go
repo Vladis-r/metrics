@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"bytes"
+	"compress/gzip"
 	"io"
 	"time"
 
@@ -66,6 +67,11 @@ func Logger(l *zap.Logger) gin.HandlerFunc {
 		if c.Request.URL.Path != "/" {
 			bodyResp = writer.body.String()
 		}
+		// gzipped
+		bodyBytes := []byte(bodyResp)
+		if decoded, err := decodeIfGzipped(bodyBytes); err == nil {
+			bodyResp = string(decoded)
+		}
 
 		l.Info("Response",
 			zap.Int("status", statusCode),
@@ -73,6 +79,24 @@ func Logger(l *zap.Logger) gin.HandlerFunc {
 			zap.Duration("duration", duration),
 			zap.Int64("size", int64(size)))
 	}
+}
+
+func decodeIfGzipped(data []byte) ([]byte, error) {
+	if !isGzipped(data) {
+		return data, nil // Not gzipped
+	}
+
+	reader, err := gzip.NewReader(bytes.NewReader(data))
+	if err != nil {
+		return nil, err
+	}
+	defer reader.Close()
+
+	return io.ReadAll(reader)
+}
+
+func isGzipped(data []byte) bool {
+	return len(data) >= 2 && data[0] == 0x1f && data[1] == 0x8b
 }
 
 // InitLogger - инициализация логгера.
