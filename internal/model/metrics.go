@@ -66,19 +66,21 @@ func (m *MemStorage) SaveMetricByTypeValue(id, mType string, value interface{}) 
 }
 
 // SaveMetric - save metric by struct Metric.
-func (m *MemStorage) SaveMetric(metric *Metric) error {
-	if ok := m.ValidateMetric(metric); !ok {
+func (s *MemStorage) SaveMetric(metric *Metric) error {
+	if ok := s.ValidateMetric(metric); !ok {
 		return fmt.Errorf("func: SaveMetric; bad request. metric: %v", metric)
 	}
 	metric.MType = strings.ToLower(metric.MType)
 	switch metric.MType {
 	case Counter:
-		if item, ok := m.Store[metric.ID]; ok {
+		if item, ok := s.Store[metric.ID]; ok {
 			*metric.Delta += *item.Delta
 		}
-		m.Store[metric.ID] = *metric
+		s.Store[metric.ID] = *metric
 	case Gauge:
-		m.Store[metric.ID] = *metric
+		s.Store[metric.ID] = *metric
+	default:
+		s.Log.Info("Unexpected type", zap.String("MType", metric.MType))
 	}
 
 	return nil

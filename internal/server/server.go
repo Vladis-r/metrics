@@ -54,6 +54,7 @@ func saveMetricsToFileLogic(s *models.MemStorage) {
 // LoadMetricsFromFile - load metrics from file and save in Store.
 func LoadMetricsFromFile(s *models.MemStorage) {
 	if !s.C.IsRestore {
+		s.Log.Info("Skip load metrics from file", zap.String("Path", s.C.FileStoragePath))
 		return
 	}
 	data, err := os.ReadFile(s.C.FileStoragePath)

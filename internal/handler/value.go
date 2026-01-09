@@ -6,6 +6,7 @@ import (
 
 	models "github.com/Vladis-r/metrics.git/internal/model"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // Value - POST handler for get metric with JSON in body.
@@ -21,17 +22,19 @@ func Value(s *models.MemStorage) gin.HandlerFunc {
 			return
 		}
 
-		switch metric.MType {
+		mType := strings.ToLower(metric.MType)
+		switch mType {
 		case models.Counter:
 			existItem, ok = s.Store[metric.ID]
 		case models.Gauge:
 			existItem, ok = s.Store[metric.ID]
 		default:
+			s.Log.Info("Unexpected type", zap.String("MType", metric.MType))
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Metric not found"})
 		}
 
-		mType := strings.ToLower(metric.MType)
-		if !ok || mType != existItem.MType {
+		if !ok || mType != strings.ToLower(existItem.MType) {
+			s.Log.Info("Not found metric", zap.Any("Metric", metric))
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Metric not found"})
 			return
 		}

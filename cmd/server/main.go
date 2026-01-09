@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 
 	"github.com/Vladis-r/metrics.git/cmd/config"
 	"github.com/Vladis-r/metrics.git/internal/handler"
@@ -21,6 +22,8 @@ func main() {
 
 	conf := config.GetConfigServer(logger)     // get config
 	var s = models.NewMemStorage(conf, logger) // Global storage for views.
+	s.Log.Info("Start server with config", zap.Any("config", conf))
+
 	server.LoadMetricsFromFile(s)
 	go server.SaveMetricsToFile(s) // Save metrics to file.
 
