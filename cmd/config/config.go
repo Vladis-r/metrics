@@ -80,13 +80,13 @@ func GetConfigAgent(logger *zap.Logger) *ConfigAgent {
 func validAddress(ipAddr string, logger *zap.Logger) string {
 	host, _, err := net.SplitHostPort(ipAddr)
 	if err != nil {
-		logger.Error("invalid ADDRESS: ", zap.String("ADDRESS", ipAddr))
+		logger.Error("invalid ADDRESS while splitHostPort: ", zap.String("ADDRESS", ipAddr), zap.String("Host", host))
 		return ""
 	}
 
 	parsed := net.ParseIP(host)
 	if parsed == nil {
-		logger.Error("invalid ADDRESS: ", zap.String("ADDRESS", ipAddr))
+		logger.Error("invalid ADDRESS while ParseIP: ", zap.String("ADDRESS", ipAddr), zap.String("Host", host))
 		return ""
 	}
 	return ipAddr
@@ -131,7 +131,11 @@ func validStoreInterval(storeInterval string, logger *zap.Logger) int {
 }
 
 func validStoragePath(path string, logger *zap.Logger) string {
-	cleanPath := filepath.Clean(path)
+	cleanPath, err := filepath.Abs(filepath.Clean(path))
+	if err != nil {
+		logger.Error("incorrected path", zap.String("Path", path))
+		return ""
+	}
 
 	if strings.Contains(cleanPath, "..") {
 		logger.Error("incorrected path with '..'", zap.String("Path", path))
