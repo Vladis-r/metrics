@@ -85,7 +85,7 @@ func validAddress(ipAddr string, logger *zap.Logger) string {
 	}
 
 	parsed := net.ParseIP(host)
-	if parsed == nil {
+	if parsed == nil && host != "localhost" {
 		logger.Error("invalid ADDRESS while ParseIP: ", zap.String("ADDRESS", ipAddr), zap.String("Host", host))
 		return ""
 	}
@@ -139,18 +139,6 @@ func validStoragePath(path string, logger *zap.Logger) string {
 
 	if strings.Contains(cleanPath, "..") {
 		logger.Error("incorrected path with '..'", zap.String("Path", path))
-		return ""
-	}
-
-	if info, err := os.Stat(cleanPath); err != nil {
-		msg := "path error"
-		if os.IsNotExist(err) {
-			msg = "path is not exist"
-		}
-		logger.Error(msg, zap.String("Path", path))
-		return ""
-	} else if !info.IsDir() {
-		logger.Error("path is not directory", zap.String("Path", path))
 		return ""
 	}
 
