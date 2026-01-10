@@ -77,13 +77,19 @@ func GetConfigAgent(logger *zap.Logger) *ConfigAgent {
 	return c
 }
 
-func validAddress(address string, logger *zap.Logger) string {
-	parsed := net.ParseIP(address)
-	if parsed == nil {
-		logger.Error("invalid ADDRESS: ", zap.String("ADDRESS", address))
+func validAddress(ipAddr string, logger *zap.Logger) string {
+	host, _, err := net.SplitHostPort(ipAddr)
+	if err != nil {
+		logger.Error("invalid ADDRESS: ", zap.String("ADDRESS", ipAddr))
 		return ""
 	}
-	return address
+
+	parsed := net.ParseIP(host)
+	if parsed == nil {
+		logger.Error("invalid ADDRESS: ", zap.String("ADDRESS", ipAddr))
+		return ""
+	}
+	return ipAddr
 }
 
 func validPollInterval(pollInterval string, logger *zap.Logger) int {
