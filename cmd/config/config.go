@@ -66,9 +66,9 @@ func GetConfigAgent(logger *zap.Logger) *ConfigAgent {
 	flag.StringVar(&pollInterval, "p", "2", "Interval for polling metrics.")
 	flag.Parse()
 
-	address = getEnv("ADDRESS", address)                 // ip address for server
-	reportInterval = getEnv("REPORT_INTERVAL", address)  // interval for send metrics to server
-	pollInterval = getEnv("POLL_INTERVAL", pollInterval) // interval for update metrics
+	address = getEnv("ADDRESS", address)                       // ip address for server
+	reportInterval = getEnv("REPORT_INTERVAL", reportInterval) // interval for send metrics to server
+	pollInterval = getEnv("POLL_INTERVAL", pollInterval)       // interval for update metrics
 
 	c.Addr = validAddress(address, logger)
 	c.ReportInterval = validReportInterval(reportInterval, logger)
