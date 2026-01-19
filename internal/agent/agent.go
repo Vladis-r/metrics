@@ -16,19 +16,19 @@ import (
 )
 
 // GoReportMetrics - func for send metrics to server.
-func GoReportMetrics(m *models.MetricsMap, c *config.ConfigAgent) {
+func GoReportMetrics(m *models.MetricsMap, conf *config.ConfigAgent) {
 	defer m.Wg.Done()
-	ticker := time.NewTicker(time.Duration(c.ReportInterval) * time.Second)
+	ticker := time.NewTicker(time.Duration(conf.ReportInterval) * time.Second)
 	defer ticker.Stop()
 
 	for t := range ticker.C {
-		go sendGzipMetrics(m, c)
+		go sendGzipMetrics(m, conf)
 		fmt.Println("Send metrics. Tick at ", t)
 	}
 }
 
 // sendGzipMetrics - send metric with gzip compress.
-func sendGzipMetrics(m *models.MetricsMap, c *config.ConfigAgent) (err error) {
+func sendGzipMetrics(m *models.MetricsMap, conf *config.ConfigAgent) (err error) {
 	copyData := m.CopyData()
 
 	var buf bytes.Buffer
@@ -40,7 +40,7 @@ func sendGzipMetrics(m *models.MetricsMap, c *config.ConfigAgent) (err error) {
 		return fmt.Errorf("func: sendMetrics; error while gz.Close(): %w", err)
 	}
 
-	fullURL := fmt.Sprintf("http://%s/%s", c.Addr, "update")
+	fullURL := fmt.Sprintf("http://%s/%s", conf.Addr, "update")
 	req, err := http.NewRequest("POST", fullURL, &buf)
 	if err != nil {
 		return fmt.Errorf("func: sendMetrics; error while http.NewRequest: %w", err)
@@ -61,9 +61,9 @@ func sendGzipMetrics(m *models.MetricsMap, c *config.ConfigAgent) (err error) {
 }
 
 // GoUpdateMetrics - func for update metrics.
-func GoUpdateMetrics(m *models.MetricsMap, cfg *config.ConfigAgent) {
+func GoUpdateMetrics(m *models.MetricsMap, conf *config.ConfigAgent) {
 	defer m.Wg.Done()
-	ticker := time.NewTicker(time.Duration(cfg.PollInterval) * time.Second)
+	ticker := time.NewTicker(time.Duration(conf.PollInterval) * time.Second)
 	defer ticker.Stop()
 
 	for t := range ticker.C {

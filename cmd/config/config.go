@@ -34,9 +34,9 @@ func GetConfigServer(logger *zap.Logger) *ConfigServer {
 	)
 	c := &ConfigServer{}
 	flag.StringVar(&address, "a", "localhost:8080", "Address to listen on.")
-	flag.StringVar(&storeInterval, "i", "10", "Interval for save metrics in file.")
+	flag.StringVar(&storeInterval, "i", "300", "Interval for save metrics in file.")
 	flag.StringVar(&fileStoragePath, "f", "metric_log.json", "Path to file where save metrics.")
-	flag.StringVar(&isRestore, "r", "false", "If true load saved metrics from file while start server.")
+	flag.StringVar(&isRestore, "r", "true", "If true load saved metrics from file while start server.")
 	flag.Parse()
 
 	address = getEnv("ADDRESS", address)                           // ip address for server
@@ -147,8 +147,7 @@ func validStoragePath(path string, logger *zap.Logger) string {
 
 // getEnv - return value from ENV by key or default.
 func getEnv(key, defaultValue string) (value string) {
-	value = strings.ToLower(os.Getenv(key))
-	if value != "" {
+	if os.Getenv(key) != "" {
 		return value
 	}
 	return defaultValue

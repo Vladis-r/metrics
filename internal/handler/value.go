@@ -41,17 +41,3 @@ func Value(s *models.MemStorage) gin.HandlerFunc {
 		c.JSON(http.StatusOK, existItem)
 	}
 }
-
-func optionalFloat64(p *float64) float64 {
-	if p == nil {
-		return 0
-	}
-	return *p
-}
-
-func optionalInt64(p *int64) int64 {
-	if p == nil {
-		return 0
-	}
-	return *p
-}

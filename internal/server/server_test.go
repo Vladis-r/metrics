@@ -22,7 +22,7 @@ func newTestLogger() *zap.Logger {
 
 func createTestMemStorageSaveFile(filePath string, metrics map[string]models.Metric) *models.MemStorage {
 	return &models.MemStorage{
-		C: &config.ConfigServer{
+		Conf: &config.ConfigServer{
 			FileStoragePath: filePath,
 		},
 		Store: metrics,
@@ -66,7 +66,7 @@ func TestSaveMetricsToFile(t *testing.T) {
 			outputFile := filepath.Join(tmpDir, "metrics.json")
 
 			storage := createTestMemStorageSaveFile(outputFile, tt.store)
-			saveMetricsToFileLogic(storage)
+			SaveMetricsToFileLogic(storage)
 
 			require.FileExists(t, outputFile, "Output file should exist")
 
@@ -113,7 +113,7 @@ func TestSaveMetricsToFile(t *testing.T) {
 			outputFile := filepath.Join(tmpDir, "metrics.json")
 
 			storage := createTestMemStorageSaveFile(outputFile, tt.store)
-			saveMetricsToFileLogic(storage)
+			SaveMetricsToFileLogic(storage)
 			require.NoFileExists(t, outputFile, "File exist with invalid path")
 		})
 	}
@@ -121,7 +121,7 @@ func TestSaveMetricsToFile(t *testing.T) {
 
 func createTestMemStorageLoadFile(filePath, isRestore string, metrics map[string]models.Metric) *models.MemStorage {
 	return &models.MemStorage{
-		C: &config.ConfigServer{
+		Conf: &config.ConfigServer{
 			FileStoragePath: filePath,
 			IsRestore:       isRestore == "true",
 		},
@@ -176,7 +176,7 @@ func TestLoadMetricsFromFile(t *testing.T) {
 			storage := createTestMemStorageLoadFile(filepath, tt.isRestore, map[string]models.Metric{})
 			LoadMetricsFromFile(storage)
 
-			if !storage.C.IsRestore {
+			if !storage.Conf.IsRestore {
 				require.Empty(t, storage.Store, "Should not load metrics when IsRestore is false")
 			}
 			if len(tt.store) > 0 {

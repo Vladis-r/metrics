@@ -30,7 +30,7 @@ type Metric struct {
 
 type MemStorage struct {
 	Store map[string]Metric
-	C     *config.ConfigServer
+	Conf  *config.ConfigServer
 	Log   *zap.Logger
 	Mu    sync.RWMutex
 }
@@ -38,7 +38,7 @@ type MemStorage struct {
 func NewMemStorage(config *config.ConfigServer, logger *zap.Logger) *MemStorage {
 	return &MemStorage{
 		Store: make(map[string]Metric),
-		C:     config,
+		Conf:  config,
 		Log:   logger,
 	}
 }

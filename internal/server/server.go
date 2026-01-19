@@ -11,16 +11,16 @@ import (
 
 // SaveMetricsToFile - save metrics in file.
 func SaveMetricsToFile(s *models.MemStorage) {
-	ticker := time.NewTicker(time.Duration(s.C.StoreInterval) * time.Second)
+	ticker := time.NewTicker(time.Duration(s.Conf.StoreInterval) * time.Second)
 	defer ticker.Stop()
 
 	for range ticker.C {
-		saveMetricsToFileLogic(s)
+		SaveMetricsToFileLogic(s)
 	}
 }
 
-// saveMetricsToFileLogic - logic for SaveMetricsToFile.
-func saveMetricsToFileLogic(s *models.MemStorage) {
+// SaveMetricsToFileLogic - logic for SaveMetricsToFile.
+func SaveMetricsToFileLogic(s *models.MemStorage) {
 	s.Mu.RLock()
 	metrics := s.Store
 	s.Mu.RUnlock()
@@ -32,7 +32,7 @@ func saveMetricsToFileLogic(s *models.MemStorage) {
 		idx++
 	}
 
-	tmpFile := s.C.FileStoragePath + ".tmp"
+	tmpFile := s.Conf.FileStoragePath + ".tmp"
 	file, err := os.OpenFile(tmpFile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
 	if err != nil {
 		s.Log.Error("Error: Cant open file for save metrics!", zap.Error(err))
@@ -45,7 +45,7 @@ func saveMetricsToFileLogic(s *models.MemStorage) {
 	}
 	file.Close()
 
-	if err := os.Rename(tmpFile, s.C.FileStoragePath); err != nil {
+	if err := os.Rename(tmpFile, s.Conf.FileStoragePath); err != nil {
 		s.Log.Error("Error: cant rename tmp file with metrics!", zap.Error(err))
 	}
 	s.Log.Info("Metrics succesfull save in file")
@@ -53,11 +53,11 @@ func saveMetricsToFileLogic(s *models.MemStorage) {
 
 // LoadMetricsFromFile - load metrics from file and save in Store.
 func LoadMetricsFromFile(s *models.MemStorage) {
-	if !s.C.IsRestore {
-		s.Log.Info("Skip load metrics from file", zap.String("Path", s.C.FileStoragePath))
+	if !s.Conf.IsRestore {
+		s.Log.Info("Skip load metrics from file", zap.String("Path", s.Conf.FileStoragePath))
 		return
 	}
-	data, err := os.ReadFile(s.C.FileStoragePath)
+	data, err := os.ReadFile(s.Conf.FileStoragePath)
 	if err != nil {
 		s.Log.Error("Error: cant read file with metrics!", zap.Error(err))
 	}
@@ -73,5 +73,5 @@ func LoadMetricsFromFile(s *models.MemStorage) {
 		s.Store[metrics[i].ID] = metrics[i]
 	}
 	s.Mu.RUnlock()
-	s.Log.Info("Metrics load from file", zap.String("Path", s.C.FileStoragePath))
+	s.Log.Info("Metrics load from file", zap.String("Path", s.Conf.FileStoragePath))
 }
