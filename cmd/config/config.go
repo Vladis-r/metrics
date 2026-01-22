@@ -147,7 +147,8 @@ func validStoragePath(path string, logger *zap.Logger) string {
 
 // getEnv - return value from ENV by key or default.
 func getEnv(key, defaultValue string) (value string) {
-	if os.Getenv(key) != "" {
+	value = os.Getenv(key)
+	if value != "" {
 		return value
 	}
 	return defaultValue
