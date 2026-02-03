@@ -1,32 +1,43 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
 	models "github.com/Vladis-r/metrics.git/internal/model"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
-// Value - get metric by type and name.
-func Value(c *gin.Context) {
-	var val interface{}
+// Value - POST handler for get metric with JSON in body.
+func Value(s *models.MemStorage) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var (
+			metric    models.Metric
+			ok        bool
+			existItem models.Metric
+		)
+		if err := c.ShouldBindJSON(&metric); err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 
-	metricType := strings.ToLower(c.Param("metricType"))
-	metricName := strings.ToLower(c.Param("metricName"))
-	metric, ok := models.Storage.GetMetric(metricName, metricType)
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-			"error": "Metric not found",
-		})
-		return
-	}
-	if metric.Value != nil {
-		val = *metric.Value
-	} else {
-		val = metric.DeltaSum
-	}
+		mType := strings.ToLower(metric.MType)
+		switch mType {
+		case models.Counter:
+			existItem, ok = s.Store[metric.ID]
+		case models.Gauge:
+			existItem, ok = s.Store[metric.ID]
+		default:
+			s.Log.Info("Unexpected type", zap.String("MType", metric.MType))
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Metric not found"})
+		}
 
-	c.String(http.StatusOK, fmt.Sprintf("%v", val))
+		if !ok || mType != strings.ToLower(existItem.MType) {
+			s.Log.Info("Metric not found", zap.Any("Metric", metric))
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Metric not found"})
+			return
+		}
+		c.JSON(http.StatusOK, existItem)
+	}
 }

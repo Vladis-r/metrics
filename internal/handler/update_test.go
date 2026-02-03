@@ -1,101 +1,77 @@
 package handler
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	models "github.com/Vladis-r/metrics.git/internal/model"
 	"github.com/gin-gonic/gin"
 )
 
 func TestUpdate(t *testing.T) {
 	tests := []struct {
-		name   string
-		method string
-		url    string
-		want   int
+		storage  *models.MemStorage
+		name     string
+		url      string
+		method   string
+		jsonData []byte
+		want     int
 	}{
 		{
-			name:   "Test 1. Check wrong method",
-			method: "GET",
-			url:    "/update/wrongType/testMetric/101",
-			want:   http.StatusNotFound,
+			name:     "Test 1. Check statusOK. Single metric.",
+			jsonData: []byte(`{"id": "LastGC","type": "gauge","value": 1744184459}`),
+			method:   http.MethodPost,
+			url:      "/update",
+			want:     http.StatusOK,
 		},
 		{
-			name:   "Test 2. Check wrong url",
-			method: http.MethodPost,
-			url:    "/update/",
-			want:   http.StatusNotFound,
+			name:     "Test 2. Check statusOK. Slice metrics.",
+			jsonData: []byte(`[{"id": "LastGC","type": "gauge","value": 1744184459}, {"id": "testMetric","type": "Counter","value": 100}]`),
+			method:   http.MethodPost,
+			url:      "/update",
+			want:     http.StatusBadRequest,
 		},
 		{
-			name:   "Test 3. Check wrong type",
-			method: http.MethodPost,
-			url:    "/update/wrongType/testMetric/101",
-			want:   http.StatusBadRequest,
+			name:     "Test 3. Check StatusBadRequest. Wrong type.",
+			jsonData: []byte(`{"id": "LastGC","type": "wrongType","value": 1744184459}`),
+			method:   http.MethodPost,
+			url:      "/update",
+			want:     http.StatusBadRequest,
 		},
 		{
-			name:   "Test 4. Check status ok",
-			method: http.MethodPost,
-			url:    "/update/counter/testMetric/101",
-			want:   http.StatusOK,
+			name:     "Test 4. Check StatusBadRequest. Wrong value.",
+			jsonData: []byte(`{"id": "LastGC","type": "gauge","value": "err"}`),
+			method:   http.MethodPost,
+			url:      "/update",
+			want:     http.StatusBadRequest,
+		},
+		{
+			name:     "Test 5. Check StatusBadRequest. Wrong json.",
+			jsonData: []byte(`{"id": 'LastGC',"type": "gauge","value": "err"}`),
+			method:   http.MethodPost,
+			url:      "/update",
+			want:     http.StatusBadRequest,
 		},
 	}
 
 	gin.SetMode(gin.TestMode)
-	r := gin.Default()
-	r.LoadHTMLGlob("../../templates/*.html")
-
-	r.POST("/update/:metricType/:metricName/:metricValue", Update)
+	r := gin.New()
+	storage := &models.MemStorage{Store: map[string]models.Metric{}}
+	r.POST("/update", Update(storage))
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req, _ := http.NewRequest(tt.method, tt.url, nil)
+			tt.storage = storage
+
+			req, _ := http.NewRequest(tt.method, tt.url, bytes.NewReader(tt.jsonData))
+			req.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 			r.ServeHTTP(w, req)
 
 			if w.Code != tt.want {
 				t.Errorf("Wrong status: got: %v, want: %v", w.Code, tt.want)
-			}
-		})
-	}
-}
-
-func TestCheckMetricsType(t *testing.T) {
-	tests := []struct {
-		name        string
-		metricType  string
-		metricValue string
-		want        interface{}
-		checkError  bool
-	}{
-		{
-			name:        "Test 1. Check wrong metricType",
-			metricType:  "wrong type",
-			metricValue: "101",
-			want:        nil,
-			checkError:  true,
-		},
-		{
-			name:        "Test 2. Check int64 metricType",
-			metricType:  "counter",
-			metricValue: "101",
-			want:        int64(101),
-		},
-		{
-			name:        "Test 3. Check float64 metricType",
-			metricType:  "gauge",
-			metricValue: "5.201",
-			want:        5.201,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			value, err := checkMetricsType(tt.metricType, tt.metricValue)
-			if err != nil && !tt.checkError {
-				t.Errorf("Error: %v", err)
-			}
-			if value != tt.want {
-				t.Errorf("Wrong status: got: %v, want: %v", value, tt.want)
 			}
 		})
 	}
