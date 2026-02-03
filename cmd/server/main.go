@@ -12,11 +12,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
+	"database/sql"
+
 	"github.com/Vladis-r/metrics.git/cmd/config"
 	"github.com/Vladis-r/metrics.git/internal/handler"
 	"github.com/Vladis-r/metrics.git/internal/middleware"
 	models "github.com/Vladis-r/metrics.git/internal/model"
 	"github.com/Vladis-r/metrics.git/internal/server"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func main() {
@@ -29,6 +32,12 @@ func main() {
 	conf := config.GetConfigServer(logger)     // get config
 	var s = models.NewMemStorage(conf, logger) // Global storage for views.
 	s.Log.Info("Start server with config", zap.Any("config", conf))
+
+	db, err := sql.Open("pgx", conf.DatabaseDsn) // Connect to db.
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
 
 	server.LoadMetricsFromFile(s)
 	go server.SaveMetricsToFile(s)
@@ -46,11 +55,9 @@ func main() {
 	r.POST("/update/:metricType/:metricName/:metricValue", handler.UpdateTypeNameValue(s))
 	r.POST("/value", handler.Value(s))
 	r.GET("/value/:metricType/:metricName", handler.ValueTypeName(s))
+	r.GET("/ping", handler.Ping(db))
 
-	srv := &http.Server{
-		Addr:    conf.Addr,
-		Handler: r,
-	}
+	srv := newServer(conf, r)
 	go startServer(srv, s)
 
 	gracefullShutdown(srv, s)
@@ -61,6 +68,13 @@ func startServer(srv *http.Server, s *models.MemStorage) {
 	s.Log.Info("Server is listening", zap.String("addr", s.Conf.Addr))
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		s.Log.Fatal("Server failed to start", zap.Error(err))
+	}
+}
+
+func newServer(conf *config.ConfigServer, r *gin.Engine) *http.Server {
+	return &http.Server{
+		Addr:    conf.Addr,
+		Handler: r,
 	}
 }
 

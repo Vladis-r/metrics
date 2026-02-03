@@ -16,6 +16,7 @@ type ConfigServer struct {
 	StoreInterval   int    `doc:"Interval for save metrics in file."`
 	FileStoragePath string `doc:"Path and filename for save metrics."`
 	IsRestore       bool   `doc:"Sign that get metrics from file while start server."`
+	DatabaseDsn     string `doc:"Database dsn"`
 }
 
 type ConfigAgent struct {
@@ -31,23 +32,27 @@ func GetConfigServer(logger *zap.Logger) *ConfigServer {
 		storeInterval   string
 		fileStoragePath string
 		isRestore       string
+		databaseDsn     string
 	)
 	c := &ConfigServer{}
 	flag.StringVar(&address, "a", "localhost:8080", "Address to listen on.")
 	flag.StringVar(&storeInterval, "i", "300", "Interval for save metrics in file.")
 	flag.StringVar(&fileStoragePath, "f", "metric_log.json", "Path to file where save metrics.")
 	flag.StringVar(&isRestore, "r", "true", "If true load saved metrics from file while start server.")
+	flag.StringVar(&databaseDsn, "d", "host=localhost port=5432 user=videos password=mypass dbname=videos sslmode=disable", "Database dsn")
 	flag.Parse()
 
 	address = getEnv("ADDRESS", address)                           // ip address for server
 	storeInterval = getEnv("STORE_INTERVAL", storeInterval)        // interval for save metrics in file
 	fileStoragePath = getEnv("FILE_STORAGE_PATH", fileStoragePath) // path to file where save metrics
 	isRestore = getEnv("RESTORE", isRestore)                       // if true load saved metrics from file while start server
+	databaseDsn = getEnv("DATABASE_DSN", databaseDsn)              // dsn for database
 
 	c.Addr = validAddress(address, logger)
 	c.StoreInterval = validStoreInterval(storeInterval, logger)
 	c.FileStoragePath = validStoragePath(fileStoragePath, logger)
 	c.IsRestore = validRestore(isRestore, logger)
+	c.DatabaseDsn = databaseDsn
 
 	return c
 }

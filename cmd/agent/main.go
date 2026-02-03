@@ -1,13 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/Vladis-r/metrics.git/cmd/config"
 	"github.com/Vladis-r/metrics.git/internal/agent"
 	"github.com/Vladis-r/metrics.git/internal/middleware"
 	models "github.com/Vladis-r/metrics.git/internal/model"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -19,8 +19,8 @@ func main() {
 	cfg := config.GetConfigAgent(logger) // Parse command-line arguments.
 	m := models.NewMetricsMap()          // Init client and map for metrics.
 
-	fmt.Println("Start metrics agent...")
-	fmt.Printf("With config:\n %v", cfg)
+	logger.Info("Start metrics agent...")
+	logger.Info("With config:\n %v", zap.Any("Config:", cfg))
 
 	goroutines := []func(*models.MetricsMap, *config.ConfigAgent){
 		agent.GoUpdateMetrics,
@@ -32,7 +32,7 @@ func main() {
 		go goroutine(m, cfg)
 	}
 
-	fmt.Println("Press Ctrl+C to exit")
+	logger.Info("Press Ctrl+C to exit")
 
 	m.Wg.Wait()
 }
