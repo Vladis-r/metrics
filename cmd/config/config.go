@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 )
 
@@ -37,11 +38,15 @@ func GetConfigServer(logger *zap.Logger) *ConfigServer {
 	c := &ConfigServer{}
 	flag.StringVar(&address, "a", "localhost:8080", "Address to listen on.")
 	flag.StringVar(&storeInterval, "i", "300", "Interval for save metrics in file.")
-	flag.StringVar(&fileStoragePath, "f", "metric_log.json", "Path to file where save metrics.")
+	flag.StringVar(&fileStoragePath, "f", "", "Path to file where save metrics.")
 	flag.StringVar(&isRestore, "r", "true", "If true load saved metrics from file while start server.")
-	flag.StringVar(&databaseDsn, "d", "host=localhost port=5432 user=videos password=mypass dbname=videos sslmode=disable", "Database dsn")
+	flag.StringVar(&databaseDsn, "d", "", "Database dsn")
 	flag.Parse()
 
+	err := godotenv.Load()
+	if err != nil {
+		logger.Warn("Warning: .env file not found, using system environment variables")
+	}
 	address = getEnv("ADDRESS", address)                           // ip address for server
 	storeInterval = getEnv("STORE_INTERVAL", storeInterval)        // interval for save metrics in file
 	fileStoragePath = getEnv("FILE_STORAGE_PATH", fileStoragePath) // path to file where save metrics
@@ -136,6 +141,9 @@ func validStoreInterval(storeInterval string, logger *zap.Logger) int {
 }
 
 func validStoragePath(path string, logger *zap.Logger) string {
+	if path == "" {
+		return ""
+	}
 	cleanPath, err := filepath.Abs(filepath.Clean(path))
 	if err != nil {
 		logger.Error("incorrected path", zap.String("Path", path))

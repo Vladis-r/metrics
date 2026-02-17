@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"fmt"
 	"slices"
 	"strings"
@@ -33,6 +34,7 @@ type MemStorage struct {
 	Conf  *config.ConfigServer
 	Log   *zap.Logger
 	Mu    sync.RWMutex
+	Db    *sql.DB
 }
 
 func NewMemStorage(config *config.ConfigServer, logger *zap.Logger) *MemStorage {

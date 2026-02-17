@@ -13,6 +13,10 @@ func Ping(db *sql.DB) gin.HandlerFunc {
 		ctx, cancel := context.WithTimeout(c.Request.Context(), 2*time.Second)
 		defer cancel()
 
+		if db == nil {
+			c.JSON(404, gin.H{"status": "not found", "detail": "Database not found"})
+		}
+
 		err := db.PingContext(ctx)
 		if err != nil {
 			c.JSON(500, gin.H{"status": "error", "detail": err.Error()})

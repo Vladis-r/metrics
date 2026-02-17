@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -19,6 +20,9 @@ import (
 	"github.com/Vladis-r/metrics.git/internal/middleware"
 	models "github.com/Vladis-r/metrics.git/internal/model"
 	"github.com/Vladis-r/metrics.git/internal/server"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -28,19 +32,11 @@ func main() {
 		log.Fatalf("Cant create logger: %v", err)
 	}
 	defer logger.Sync()
-
 	conf := config.GetConfigServer(logger)     // get config
 	var s = models.NewMemStorage(conf, logger) // Global storage for views.
 	s.Log.Info("Start server with config", zap.Any("config", conf))
 
-	db, err := sql.Open("pgx", conf.DatabaseDsn) // Connect to db.
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-
-	server.LoadMetricsFromFile(s)
-	go server.SaveMetricsToFile(s)
+	chooseStorage(conf, s) // Save metrics in db or file
 
 	r := gin.New()                   // Create a new Gin instance
 	r.Use(middleware.Logger(logger)) // Add logger middleware
@@ -55,7 +51,9 @@ func main() {
 	r.POST("/update/:metricType/:metricName/:metricValue", handler.UpdateTypeNameValue(s))
 	r.POST("/value", handler.Value(s))
 	r.GET("/value/:metricType/:metricName", handler.ValueTypeName(s))
-	r.GET("/ping", handler.Ping(db))
+
+	// service handlers
+	r.GET("/ping", handler.Ping(s.Db))
 
 	srv := newServer(conf, r)
 	go startServer(srv, s)
@@ -71,11 +69,36 @@ func startServer(srv *http.Server, s *models.MemStorage) {
 	}
 }
 
+// newServer - creates a new HTTP server.
 func newServer(conf *config.ConfigServer, r *gin.Engine) *http.Server {
 	return &http.Server{
 		Addr:    conf.Addr,
 		Handler: r,
 	}
+}
+
+// chooseStorage - choose storage for metrics.
+func chooseStorage(conf *config.ConfigServer, s *models.MemStorage) (err error) {
+	switch {
+	case conf.DatabaseDsn != "":
+		s.Db, err = sql.Open("pgx", conf.DatabaseDsn) // Connect to db.
+		if err != nil {
+			panic(err)
+		}
+		// uncomment for up migrations.
+		// err = runMigrations(conf.DatabaseDsn, s)
+		// if err != nil {
+		// 	panic(err)
+		// }
+		server.LoadMetricsFromDatabase(s)
+		go server.SaveMetricToDb(s)
+	case conf.FileStoragePath != "":
+		server.LoadMetricsFromFile(s)
+		go server.SaveMetricsToFile(s)
+	default:
+		s.Log.Fatal("No storage configured")
+	}
+	return nil
 }
 
 // gracefullShutdown - gracefully shutdown the server. Save metric into file.
@@ -89,10 +112,61 @@ func gracefullShutdown(srv *http.Server, s *models.MemStorage) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	server.SaveMetricsToFileLogic(s) // Save metric into file.
+	switch {
+	case s.Conf.DatabaseDsn != "":
+		server.SaveMetricToDbLogic(s)
+	case s.Conf.FileStoragePath != "":
+		server.SaveMetricsToFileLogic(s)
+	default:
+		s.Log.Fatal("Metrics not save after shutdown!")
+	}
+	s.Db.Close() // close database connection
 
 	if err := srv.Shutdown(ctx); err != nil {
 		s.Log.Fatal("Server forced to shutdown", zap.Error(err))
 	}
 	s.Log.Info("Server stopped")
+}
+
+// runMigrations - func for run migrations while start server if needed
+func runMigrations(dsn string, s *models.MemStorage) error {
+	absPath, err := filepath.Abs("./migrations")
+	if err != nil {
+		s.Log.Error("failed to get absolute path", zap.Error(err))
+		return err
+	}
+	sourceURL := "file://" + filepath.ToSlash(absPath)
+	m, err := migrate.New(
+		sourceURL,
+		dsn,
+	)
+	if err != nil {
+		return err
+	}
+	defer m.Close()
+
+	_, dirty, _ := m.Version()
+
+	if dirty {
+		m.Force(-1)
+	}
+
+	err = m.Down()
+	if err != nil {
+		s.Log.Info("Cant migrations down")
+		return nil
+	}
+
+	err = m.Up()
+	if err == migrate.ErrNoChange {
+		s.Log.Info("No migration changes")
+		return nil
+	}
+	if err != nil {
+		s.Log.Error("failed to run migrations", zap.Error(err))
+		return err
+	}
+
+	s.Log.Info("Migrations applied successfully")
+	return nil
 }

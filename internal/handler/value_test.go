@@ -55,8 +55,8 @@ func TestValue(t *testing.T) {
 	}
 	storage := &models.MemStorage{
 		Store: map[string]models.Metric{
-			"LastGC":     models.Metric{ID: "LastGC", MType: "gauge", Value: &val1},
-			"testMetric": models.Metric{ID: "testMetric", MType: "gauge", Value: &val2}},
+			"LastGC":     {ID: "LastGC", MType: "gauge", Value: &val1},
+			"testMetric": {ID: "testMetric", MType: "gauge", Value: &val2}},
 		Log: logger,
 	}
 	r.POST("/value", Value(storage))
