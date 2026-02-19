@@ -156,13 +156,13 @@ func runMigrations(dsn string, s *models.MemStorage) error {
 
 	err = m.Down()
 	if err != nil {
-		s.Log.Info("Cant migrations down")
+		s.Log.Error("Error while down migrations.", zap.Error(err))
 		return nil
 	}
 
 	err = m.Up()
 	if err == migrate.ErrNoChange {
-		s.Log.Info("No migration changes")
+		s.Log.Info("No migration changes", zap.Error(err))
 		return nil
 	}
 	if err != nil {
