@@ -86,10 +86,10 @@ func chooseStorage(conf *config.ConfigServer, s *models.MemStorage) (err error) 
 			panic(err)
 		}
 		// uncomment for up migrations.
-		// err = runMigrations(conf.DatabaseDsn, s)
-		// if err != nil {
-		// 	panic(err)
-		// }
+		err = runMigrations(conf.DatabaseDsn, s)
+		if err != nil {
+			panic(err)
+		}
 		server.LoadMetricsFromDatabase(s)
 		go server.SaveMetricToDB(s)
 	case conf.FileStoragePath != "":
