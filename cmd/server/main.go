@@ -53,7 +53,7 @@ func main() {
 	r.GET("/value/:metricType/:metricName", handler.ValueTypeName(s))
 
 	// service handlers
-	r.GET("/ping", handler.Ping(s.Db))
+	r.GET("/ping", handler.Ping(s.DB))
 
 	srv := newServer(conf, r)
 	go startServer(srv, s)
@@ -81,7 +81,7 @@ func newServer(conf *config.ConfigServer, r *gin.Engine) *http.Server {
 func chooseStorage(conf *config.ConfigServer, s *models.MemStorage) (err error) {
 	switch {
 	case conf.DatabaseDsn != "":
-		s.Db, err = sql.Open("pgx", conf.DatabaseDsn) // Connect to db.
+		s.DB, err = sql.Open("pgx", conf.DatabaseDsn) // Connect to db.
 		if err != nil {
 			panic(err)
 		}
@@ -91,12 +91,12 @@ func chooseStorage(conf *config.ConfigServer, s *models.MemStorage) (err error) 
 		// 	panic(err)
 		// }
 		server.LoadMetricsFromDatabase(s)
-		go server.SaveMetricToDb(s)
+		go server.SaveMetricToDB(s)
 	case conf.FileStoragePath != "":
 		server.LoadMetricsFromFile(s)
 		go server.SaveMetricsToFile(s)
 	default:
-		s.Log.Fatal("No storage configured")
+		s.Log.Warn("No storage configured")
 	}
 	return nil
 }
@@ -112,20 +112,23 @@ func gracefullShutdown(srv *http.Server, s *models.MemStorage) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	switch {
-	case s.Conf.DatabaseDsn != "":
-		server.SaveMetricToDbLogic(s)
-	case s.Conf.FileStoragePath != "":
-		server.SaveMetricsToFileLogic(s)
-	default:
-		s.Log.Fatal("Metrics not save after shutdown!")
-	}
-	s.Db.Close() // close database connection
-
 	if err := srv.Shutdown(ctx); err != nil {
 		s.Log.Fatal("Server forced to shutdown", zap.Error(err))
 	}
 	s.Log.Info("Server stopped")
+
+	switch {
+	case s.Conf.DatabaseDsn != "":
+		server.SaveMetricToDBLogic(s)
+		s.Log.Info("Metrics save in DB")
+	case s.Conf.FileStoragePath != "":
+		server.SaveMetricsToFileLogic(s)
+		s.Log.Info("Metrics save in file")
+	default:
+		s.Log.Fatal("Metrics not save after shutdown!")
+	}
+	s.DB.Close() // close database connection
+	s.Log.Info("Database connection is closed")
 }
 
 // runMigrations - func for run migrations while start server if needed

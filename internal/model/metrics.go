@@ -34,7 +34,7 @@ type MemStorage struct {
 	Conf  *config.ConfigServer
 	Log   *zap.Logger
 	Mu    sync.RWMutex
-	Db    *sql.DB
+	DB    *sql.DB
 }
 
 func NewMemStorage(config *config.ConfigServer, logger *zap.Logger) *MemStorage {

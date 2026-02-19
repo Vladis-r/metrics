@@ -11,18 +11,18 @@ import (
 	"go.uber.org/zap"
 )
 
-// SaveMetricToDb - save metrics to database every tick Conf.StoreInterval .
-func SaveMetricToDb(s *models.MemStorage) {
+// SaveMetricToDB - save metrics to database every tick Conf.StoreInterval .
+func SaveMetricToDB(s *models.MemStorage) {
 	ticker := time.NewTicker(time.Duration(s.Conf.StoreInterval) * time.Second)
 	defer ticker.Stop()
 
 	for range ticker.C {
-		SaveMetricToDbLogic(s)
+		SaveMetricToDBLogic(s)
 	}
 }
 
-// SaveMetricToDbLogic - logic for save metrics to database.
-func SaveMetricToDbLogic(s *models.MemStorage) {
+// SaveMetricToDBLogic - logic for save metrics to database.
+func SaveMetricToDBLogic(s *models.MemStorage) {
 	s.Mu.RLock()
 	metrics := s.Store
 	s.Mu.RUnlock()
